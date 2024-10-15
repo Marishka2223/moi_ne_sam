@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание заявки</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <h1>Создание заявки</h1>
+    <form id="requestForm" action="../php/submit_request.php" method="post">
+        <label for="address">Адрес:</label>
+        <input type="text" id="address" name="address" required>
+        <br>
+        <label for="phone">Телефон:</label>
+        <input type="text" id="phone" name="phone" required pattern="\+7\([0-9]{3}\)-[0-9]{3}-[0-9]{2}-[0-9]{2}">
+        <br>
+        <label for="service_type">Вид услуги:</label>
+        <select id="service_type" name="service_type" required>
+            <option value="general_cleaning">Общий клининг</option>
+            <option value="deep_cleaning">Генеральная уборка</option>
+            <option value="post_construction_cleaning">Послестроительная уборка</option>
+            <option value="carpet_cleaning">Химчистка ковров и мебели</option>
+            <option value="other">Иная услуга</option>
+        </select>
+        <br>
+        <div id="other_service_description_container" style="display:none;">
+            <label for="other_service_description">Описание услуги:</label>
+            <textarea id="other_service_description" name="other_service_description"></textarea>
+        </div>
+        <br>
+        <label for="preferred_payment">Предпочтительный тип оплаты:</label>
+        <select id="preferred_payment" name="preferred_payment" required>
+            <option value="cash">Наличные</option>
+            <option value="card">Банковская карта</option>
+        </select>
+        <br>
+        <label for="requested_date">Дата:</label>
+        <input type="date" id="requested_date" name="requested_date" required>
+        <br>
+        <label for="requested_time">Время:</label>
+        <input type="time" id="requested_time" name="requested_time" required>
+        <br>
+        <button type="submit">Отправить заявку</button>
+    </form>
+    <script src="../js/scripts.js"></script>
+</body>
+</html>
