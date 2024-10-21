@@ -1,6 +1,37 @@
-<select>
-  <option value="" disabled selected>Выберите вариант</option>
-  <option value="1">Вариант 1</option>
-  <option value="2">Вариант 2</option>
-  <option value="3">Вариант 3</option>
-</select>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Выпадающий список с полем ввода</title>
+    <style>
+        #otherServiceInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <select id="serviceSelect">
+        <option value="" disabled selected>Выберите услугу</option>
+        <option value="1">Услуга 1</option>
+        <option value="2">Услуга 2</option>
+        <option value="3">Услуга 3</option>
+        <option value="other">Иная услуга</option>
+    </select>
+
+    <div id="otherServiceInput">
+        <label for="otherService">Укажите другую услугу:</label>
+        <input type="text" id="otherService" name="otherService">
+    </div>
+
+    <script>
+        document.getElementById('serviceSelect').addEventListener('change', function() {
+            var otherServiceInput = document.getElementById('otherServiceInput');
+            if (this.value === 'other') {
+                otherServiceInput.style.display = 'block';
+            } else {
+                otherServiceInput.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
