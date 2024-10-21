@@ -1,0 +1,6 @@
+<select>
+  <option value="" disabled selected>Выберите вариант</option>
+  <option value="1">Вариант 1</option>
+  <option value="2">Вариант 2</option>
+  <option value="3">Вариант 3</option>
+</select>
