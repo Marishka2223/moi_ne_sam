@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор услуги</title>
+    <script>
+        function updateService() {
+            const select = document.getElementById('serviceOption');
+            const otherServiceInput = document.getElementById('otherServiceInput');
+            const selectedOption = select.options[select.selectedIndex].value;
+
+            if (selectedOption === 'other') {
+                otherServiceInput.style.display = 'block';
+                otherServiceInput.value = ''; // Очищаем поле, если оно уже было заполнено
+            } else {
+                otherServiceInput.style.display = 'none';
+                otherServiceInput.value = selectedOption; // Переносим выбранную опцию в текстовое поле
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Выбор услуги</h2>
+    <form>
+        <label for="serviceOption">Выберите услугу:</label>
+        <select id="serviceOption" name="serviceOption" onchange="updateService()">
+            <option value="bank">Банковский перевод</option>
+            <option value="creditCard">Кредитная карта</option>
+            <option value="paypal">PayPal</option>
+            <option value="other">Иная услуга</option>
+        </select>
+        
+        <br><br>
+        
+        <label for="otherServiceInput" id="otherServiceLabel" style="display: none;">Укажите иную услугу:</label>
+        <input type="text" id="otherServiceInput" name="otherServiceInput" style="display: none;" placeholder="Введите название услуги">
+        
+        <br><br>
+        
+        <button type="submit">Отправить</button>
+    </form>
+</body>
+</html>
