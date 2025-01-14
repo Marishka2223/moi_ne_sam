@@ -1,0 +1,94 @@
+<?php
+
+if(isset($_POST['login']) && isset($_POST['name']) && isset($_POST['lastname']) && isset($_POST['surname']) && isset($_POST['phone']) && isset($_POST['password']) && isset($_POST['email'])){
+
+
+    $conn = new mysqli("localhost","root","root","shooterki");
+
+    if($conn->connect_error){
+        die("Ошибка:".$conn->connect_error);
+    }
+
+$login=$conn->real_escape_string($_POST["login"]);
+$name=$conn->real_escape_string($_POST["name"]);
+$lastname=$conn->real_escape_string($_POST["lastname"]);
+$surname=$conn->real_escape_string($_POST["surname"]);
+$email=$conn->real_escape_string($_POST["email"]);
+$phone=$conn->real_escape_string($_POST["phone"]);
+$password=$conn->real_escape_string($_POST["password"]);
+$hash = password_hash($password, PASSWORD_DEFAULT);
+
+
+$sql="INSERT INTO users (login, name, lastname, surname, email, phone, password) VALUES ('$login', '$name', '$lastname', '$surname', '$email', '$phone','$hash')";
+if($conn->query($sql)){
+    header("Location: user_checkpoint.php");
+}
+else{
+    echo "Ошибка: ".$conn->error;
+}
+$conn->close();
+}
+
+
+?>
+
+
+
+
+авторизация:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoTechStore - Авторизация</title>
+</head>
+<body>
+    
+<div id="regir" style="display: flex; align-items: center;  justify-content: center; flex-direction: column; text-decoration: none;">
+    <form method="post" >
+    <h1>Вход</h1>
+        <label>Логин:<input type="text" name="login"></label>
+        <label>Пароль:<input type="password" pattern="\w{#,@,$,%,^,&,*,(,),?,<,>,«,»}" name="password" rerquired></label>
+        <input name="submit" type="submit" class="button" placeholder="Войти">
+    </form>
+    <a href="#">Забыли пароль?</a>
+    <a href="./register.php">Зарегистрироваться</a>
+
+</div>
+
+    <?php
+
+if(isset($_POST) && isset($_POST['login']) && isset($_POST['password'])){
+
+    $conn = new mysqli("localhost","root","root","shooterki");
+
+    if($conn->connect_error){
+        die("Ошибка:".$conn->connect_error);
+    }
+
+    $log=$conn->real_escape_string($_POST["login"]);
+    $pas=$conn->real_escape_string($_POST["password"]);
+    $hash = password_hash($pas, PASSWORD_DEFAULT);
+
+    $sql=mysqli_query($conn, "SELECT id, login,  password FROM users WHERE login='$log' and password='$pas'");
+    $data=mysqli_fetch_assoc($sql);
+
+    if(mysqli_num_rows($sql)>0 && password_verify($pas)){
+
+        session_start();
+        $_SESSION['shooterki']=$data['id'];
+
+        header("Location: user_checkpoint.php");
+        exit();
+    }
+        if(mysqli_num_rows($sql)==0){
+            echo 'Ошибка';
+            exit();
+        }
+    $conn->close();
+}
+?>
+</body>
+</html>
