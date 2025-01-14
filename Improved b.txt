@@ -1,30 +1,121 @@
+maine.php:
+
 <?php
+// Подключение к базе данных
+$mysqli = new mysqli("localhost", "username", "password", "database");
 
-if(isset($_POST['submit']) && isset($_POST['login']) && isset($_POST['password'])){
+// Проверка соединения
+if ($mysqli->connect_error) {
+    die("Ошибка подключения: " . $mysqli->connect_error);
+}
 
-    $conn = new mysqli("localhost","root","root","shooterki");
+// Запрос к базе данных
+$query = "SELECT id, opis, image, rates FROM tovar WHERE rates > 0";
+$result = $mysqli->query($query);
 
-    if($conn->connect_error){
-        die("Ошибка:".$conn->connect_error);
+// Проверка, есть ли записи
+if ($result->num_rows > 0) {
+    // Вывод записей в ряд по 4
+    echo '<div style="display: flex; flex-wrap: wrap;">';
+    $count = 0;
+    while ($row = $result->fetch_assoc()) {
+        echo '<div style="flex: 1 1 25%; padding: 10px;">';
+        echo '<img src="' . $row['image'] . '" alt="' . $row['opis'] . '" style="width:100%;">';
+        echo '<p>' . $row['opis'] . '</p>';
+        echo '<p>Рейтинг: ' . $row['rates'] . '</p>';
+        echo '</div>';
+        $count++;
+        if ($count % 4 == 0) {
+            echo '</div><div style="display: flex; flex-wrap: wrap;">';
+        }
     }
+    echo '</div>';
+} else {
+    // Если записей нет
+    echo '<p>Товаров временно нет в наличии</p>';
+}
 
-    $log = $conn->real_escape_string($_POST["login"]);
-    $pas = $_POST["password"]; // Не нужно экранировать пароль, так как он не используется в SQL-запросе напрямую
+// Закрытие соединения
+$mysqli->close();
+?>
 
-    $sql = mysqli_query($conn, "SELECT id, login, password FROM users WHERE login='$log'");
-    $data = mysqli_fetch_assoc($sql);
+====================
+checkpoint.php:
 
-    if($data && password_verify($pas, $data['password'])){ // Проверяем пароль с хешем из базы данных
-        session_start();
-        $_SESSION['shooterki'] = $data['id'];
+<?php
+// Начинаем сессию
+session_start();
 
-        header("Location: user_checkpoint.php");
-        exit();
-    } else {
-        echo 'Ошибка: Неверный логин или пароль';
-        exit();
-    }
-
-    $conn->close();
+// Проверяем, установлено ли имя в сессии и равно ли оно 'admin'
+if (isset($_SESSION['name']) && $_SESSION['name'] === 'admin' && isset($_SESSION['password']) && $_SESSION['password'] === 'admin') {
+    // Перенаправляем на admin.php
+    header('Location: admin.php');
+    exit(); // Важно завершить выполнение скрипта после перенаправления
+} else {
+    // Перенаправляем на maine.php
+    header('Location: maine.php');
+    exit(); // Важно завершить выполнение скрипта после перенаправления
 }
 ?>
+==========
+acc.php:
+
+<?php
+// Подключение к базе данных
+$mysqli = new mysqli("localhost", "username", "password", "database");
+
+// Проверка соединения
+if ($mysqli->connect_error) {
+    die("Ошибка подключения: " . $mysqli->connect_error);
+}
+
+$user_id = $_SESSION['user_id'];
+
+// Запрос для получения данных пользователя
+$user_query = "SELECT * FROM users WHERE id = $user_id";
+$user_result = $conn->query($user_query);
+
+if ($user_result->num_rows > 0) {
+    $user = $user_result->fetch_assoc();
+} else {
+    die("Пользователь не найден");
+}
+
+$zakaz_query = "SELECT * FROM zakaz WHERE id_users = $user_id";
+$zakaz_result = $conn->query($zakaz_query);
+?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль пользователя</title>
+    <style>
+        .user-name {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Приветствуем, <span class="user-name"><?php echo htmlspecialchars($user['name']); ?></span></h2>
+
+    <?php if ($zakaz_result->num_rows > 0): ?>
+        <h3>Ваши заказы:</h3>
+        <ul>
+            <?php while ($zakaz = $zakaz_result->fetch_assoc()): ?>
+                <li>Заказ #<?php echo htmlspecialchars($zakaz['id']); ?> - <?php echo htmlspecialchars($zakaz['description']); ?></li>
+            <?php endwhile; ?>
+        </ul>
+    <?php else: ?>
+        <p>Заказов нет</p>
+    <?php endif; ?>
+</body>
+</html>
+
+<?php
+$mysqli->close();
+?>
+======
+
+
+
