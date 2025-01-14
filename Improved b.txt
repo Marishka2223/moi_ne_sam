@@ -1,0 +1,30 @@
+<?php
+
+if(isset($_POST['submit']) && isset($_POST['login']) && isset($_POST['password'])){
+
+    $conn = new mysqli("localhost","root","root","shooterki");
+
+    if($conn->connect_error){
+        die("Ошибка:".$conn->connect_error);
+    }
+
+    $log = $conn->real_escape_string($_POST["login"]);
+    $pas = $_POST["password"]; // Не нужно экранировать пароль, так как он не используется в SQL-запросе напрямую
+
+    $sql = mysqli_query($conn, "SELECT id, login, password FROM users WHERE login='$log'");
+    $data = mysqli_fetch_assoc($sql);
+
+    if($data && password_verify($pas, $data['password'])){ // Проверяем пароль с хешем из базы данных
+        session_start();
+        $_SESSION['shooterki'] = $data['id'];
+
+        header("Location: user_checkpoint.php");
+        exit();
+    } else {
+        echo 'Ошибка: Неверный логин или пароль';
+        exit();
+    }
+
+    $conn->close();
+}
+?>
