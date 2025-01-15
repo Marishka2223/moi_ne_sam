@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 // Подключение к базе данных
@@ -18,17 +19,24 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         echo '<div style="flex: 1 1 25%; padding: 10px;">';
         
-        if($row['image' === 'ASUS']){
-             $image_path="Без имени.png";
+        // Проверка, если изображение связано с ASUS
+        if($row['image'] === 'ASUS'){
+             $image_path = "Без имени.png"; // Убедитесь, что путь корректен
 
              if(file_exists($image_path)){
                 echo "<img src='$image_path' alt='ASUS 5555'>";
+             } else {
+                echo "Изображение не найдено";
              }
-                else{
-                    echo "Изображение не найдено";
-                }
-             
+        } else {
+            // Отображение изображения из базы данных
+            if (!empty($row['image'])) {
+                echo "<img src='" . $row['image'] . "' alt='" . $row['name'] . "'>";
+            } else {
+                echo "Изображение отсутствует";
+            }
         }
+        
         echo '<p>' . $row['described'] . '</p>';
         echo '<p>' . $row['name'] . '</p>';
         echo '<p>Рейтинг: ' . $row['rate'] . '</p>';
@@ -44,10 +52,6 @@ if ($result->num_rows > 0) {
     echo '<p>Товаров временно нет в наличии</p>';
 }
 
-if($row['image' === 'ASUS']){
-
-}
 // Закрытие соединения
 $conn->close();
 ?>
-
