@@ -1,3 +1,7 @@
+
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,22 +11,20 @@
 </head>
 <body>
 
-<header style="display: flex; flex-direction: row; text-align: center; padding: gap: 20px">
+<header style="display: flex; flex-direction: row; text-align: center; gap: 20px;">
     <a href="./maine.php">Главная</a>
     <a href="./acc.php">Мой Аккаунт</a>
     <a href="./acc.php">Корзина</a>
 
     <?php
-    if( isset($_SESSION['login'] === 'admin')){
-
+    if (isset($_SESSION['login']) && $_SESSION['login'] === 'admin') {
         echo '<a href="./admin.php">Админ панель</a>';
     }
     ?>
 </header>
 
-     <h1 style=" text-align: center; font-size: 3.1em;">Каталог товаров</h1>
-    <?php
-session_start();
+<h1 style="text-align: center; font-size: 3.1em;">Каталог товаров</h1>
+<?php
 // Подключение к базе данных
 $conn = new mysqli("localhost", "root", "root", "shooterki");
 
@@ -40,7 +42,7 @@ if ($result->num_rows > 0) {
     echo '<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
     $count = 0;
     while ($row = $result->fetch_assoc()) {
-        echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; text-align: center; width: 40px; flex-direction: row;">';
+        echo '<div style="flex: 1 1 calc(25% - 20px); box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; text-align: center;">';
         
         echo '<img src="data:image/png;base64,' . base64_encode($row['image']) . '" width="200px" height="200px" style="border-radius: 8px;"/>';
         echo '<h2 style="font-size: 1.5em; margin: 10px 0;">' . htmlspecialchars($row['name']) . '</h2>';
@@ -49,7 +51,7 @@ if ($result->num_rows > 0) {
         echo '</div>';
         
         $count++;
-        if ($count % 4 == 0) {
+        if ($count % 4 == 0 && $count != 0) {
             echo '</div><div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
         }
     }
