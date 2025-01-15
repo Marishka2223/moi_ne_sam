@@ -3,98 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechStore - Регистрация</title>
-    <link rel="stylesheet" href="../styles/stiles_for_Main.css">
-    <script src="../javaScript/functions.js" defer></script>
-</head>
-<body>
-    <header class="header" style="display: flex; align-items: center; justify-content: center">
-    </header>
-    <main style="display: flex; align-items: center; justify-content: center; flex-direction: column; text-decoration: none;">
-        <h1>Регистрация</h1>
-        <form action="./register_func.php" method="post" id="form" onsubmit="return checkPassword(this)">
-            <div class="contBlur">
-                <input type="text" name="login" id="login" placeholder="Логин" pattern="^[A-Za-zА-Яа-яЁё\s]{3,}" required>
-            </div>
-            <br>
-            <div>
-                <input type="text" name="name" id="name" placeholder="Имя" pattern="^[A-Za-zА-Яа-яЁё\s]{2,}" required>
-            </div>
-            <br>
-            <div>
-                <input type="text" name="lastname" id="lastname" placeholder="Фамилия" pattern="^[A-Za-zА-Яа-яЁё\s]{2,}" required>
-            </div>
-            <br>
-            <div>
-                <input type="text" name="surname" id="surname" placeholder="Отчество" pattern="^[A-Za-zА-Яа-яЁё\s]{2,}" required>
-            </div>
-            <br>
-            <div>
-                <input type="email" name="email" id="email" placeholder="Почта" required>
-            </div>
-            <br>
-            <div>
-                <input type="tel" name="phone" id="phone" pattern="\+7\(\d{3}\)-\d{3}-\d{2}-\d{2}" placeholder="+7(XXX)-XXX-XX-XX" required>
-            </div>
-            <br>
-            <div>
-                <input type="password" name="password" id="password" placeholder="Пароль" pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[#@$%^&*()?<>«»])[A-Za-z\d#@$%^&*()?<>«»]{8,}$" required>
-            </div>
-            <br>
-            <div>
-                <input type="password" name="password_d" id="password_d" placeholder="Подтвердите пароль" required>
-            </div>
-            <br>
-            <div>
-                <input type="submit" value="Зарегистрироваться">
-                <div class="blur"></div>
-            </div>
-        </form>
-
-        <script>
-            function checkPassword(form) {
-                const password1 = form.password.value;
-                const password2 = form.password_d.value;
-
-                if (password1 === '') {
-                    alert("Введите пароль");
-                    return false;
-                } else if (password2 === '') {
-                    alert("Подтвердите пароль");
-                    return false;
-                } else if (password1 !== password2) {
-                    alert("Пароли не совпадают.");
-                    return false;
-                }
-                return true;
-            }
-        </script>
-
-        <section id="links">
-            <a class="reg" href="./index.php"><h2 class="text t2">Войти</h2></a>
-        </section>
-
-        <section id="err">
-        </section>
-    </main>
-    <footer></footer>
-</body>
-</html>
-
-
-
-================
-
-maine.php:
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Главная заказов</title>
 </head>
 <body>
+
+<header style="display: flex; flex-direction: row; text-align: center; padding: gap: 20px">
+    <a href="./maine.php">Главная</a>
+    <a href="./acc.php">Мой Аккаунт</a>
+    <a href="./acc.php">Корзина</a>
+
+    <?php
+    if( isset($_SESSION['login'] === 'admin')){
+
+        echo '<a href="./admin.php">Админ панель</a>';
+    }
+    ?>
+</header>
 
      <h1 style=" text-align: center; font-size: 3.1em;">Каталог товаров</h1>
     <?php
@@ -140,5 +64,3 @@ $conn->close();
 ?> 
 </body>
 </html>
-
-================
