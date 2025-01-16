@@ -1,79 +1,92 @@
-<?php
-session_start(); // Начинаем сессию
+    <?php
+    session_start();
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Корзина</title>
+    </head>
+    <body>
+    <header style="display: flex; background-color: rgba(27, 27, 27, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
 
-// Проверяем, был ли отправлен товар
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product'])) {
-    $selectedProduct = $_POST['product'];
+        <h1>TechStore</h1>
+
+        <a href="./maine.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
+
+        <?php
+        if (isset($_SESSION['shooterki']) && $_SESSION['shooterki'] === '7') {
+            echo '<a href="./admin.php" style="color: white; font-size: 1.5em">Админ панель</a>';
+        }
+
+        if (isset($_SESSION['shooterki']) && $_SESSION['shooterki'] != '7') {
+            echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
+        }
+        ?>
+    <a href="./logout.php" style="color: white; font-size: 1.5em">Выйти</a>
+    </header>
+
+    <h1 style=" display: flex; justify-content: center; align-items: center;">Формирование вашего заказа</h1>
+    <br><br>
+        
+        <?php
+
+    if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['described']) && isset($_POST['price']) && isset($_POST['image'])){
+
+        
+        $conn = new mysqli("localhost","root","root","shooterki");
+
+        if($conn->connect_error){
+            die("Ошибка:".$conn->connect_error);
+        }
+
+        $tovar = $conn->real_escape_string($_POST['name']);
+        $opis = $conn->real_escape_string($_POST['described']);
+        $price = $conn->real_escape_string($_POST['price']);
+        $chel =  $_SESSION['shooterki'];
+        $tovar_id = $_POST['id'];
+        $image = $_POST['image'];
+
+        echo '<div style=" display: flex; justify-content: center; align-items: center;">';
+
+
+        echo '<form method="post" action="./zakaz2.php">';
+
+        echo '<input type="hidden" name="id_tovar" value="' . $tovar_id . '">';
+        echo '<input type="hidden" name="id_user" value="' . $chel . '">';
+        echo '<input type="hidden"  name="images" value="' .$image. '">';
+        echo '<input type="hidden" name="tovar4ik" value="' . $tovar. '">';
+        echo '<input  type="hidden" name="prices" value="' .$price . '">';
     
-    // Сохраняем выбранный товар в сессии
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = []; // Создаем массив корзины, если его нет
-    }
-    
-    $_SESSION['cart'][] = $selectedProduct; // Добавляем товар в корзину
-}
-
-?>
-
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Выбор товара</title>
-</head>
-<body>
-    <h1>Выберите товар</h1>
-    
-    <form action="zakaz2.php" method="post">
-        <select name="product">
-            <option value="Товар 1">Товар 1</option>
-            <option value="Товар 2">Товар 2</option>
-            <option value="Товар 3">Товар 3</option>
-        </select>
-        <button type="submit">Добавить в корзину</button>
-    </form>
-    
-    <p><a href="cart.php">Перейти в корзину</a></p>
-</body>
-</html>
 
 
-=====
-<?php
-session_start(); // Начинаем сессию
 
-// Проверяем, был ли отправлен товар
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product'])) {
-    $selectedProduct = $_POST['product'];
-    
-    // Сохраняем выбранный товар в сессии
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = []; // Создаем массив корзины, если его нет
-    }
-    
-    $_SESSION['cart'][] = $selectedProduct; // Добавляем товар в корзину
-}
+        echo '<div style=" display: flex; justify-content: center; align-items: center; flex-direction: column;">';
+        echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . htmlspecialchars( $image ). '" width="400px" height="400px" style="border-radius: 8px;"/>';
+        echo '<h2 style="font-size: 2.5em; margin: 10px 0;">' . htmlspecialchars($tovar) . '</h2>';
+        echo '<h2 style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($opis) .'</h2>';
+        echo '<br>';
+        echo '<div style="display: flex; flex-direction: row; gap: 5px; text-align: center; align-item: center; justify-content: center;">';
+        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;">' . htmlspecialchars($price) . '</h1>';
+        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;"> руб.</h1>';
+        echo '<select name="opll" htmlspecialchars>';
+        echo '<option value ="наличными">наличными';
+        echo '</option>';
+        echo '<option value ="картой">картой';
+        echo '</option>';
+        echo '</select>';
+        echo '</div>';
+        echo '<br>';
+        echo '<br>';
+        echo '<input type="submit" value="Оформить заказ" style="background-color: rgba(61, 218, 113, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(61, 218, 113, 0.88);">';
 
-// Перенаправляем пользователя обратно на страницу выбора товара
-header('Location: zakaz.php');
-exit();
-?>
-
-=====
-<?php
-session_start(); // Начинаем сессию
-
-// Проверяем, есть ли товары в корзине
-if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-    echo "<h1>Ваша корзина</h1>";
-    echo "<ul>";
-    foreach ($_SESSION['cart'] as $product) {
-        echo "<li>$product</li>";
-    }
-    echo "</ul>";
-} else {
-    echo "<h1>Ваша корзина пуста</h1>";
-}
-?>
-
-<p><a href="zakaz.php">Вернуться к выбору товаров</a></p>
+        echo '</form>';
+        echo '</div>';
+        }
+        else{
+            echo 'nope';
+        }
+        ?>
+    </body>
+    </html>
