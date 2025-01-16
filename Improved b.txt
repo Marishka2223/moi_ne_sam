@@ -1,16 +1,16 @@
+zakaz.php:
+
 <?php
 session_start();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная заказов</title>
+    <title>Формирование заказа</title>
 </head>
 <body>
-
 <header style="display: flex; background-color: rgba(27, 27, 27, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
 
      <h1>TechStore</h1>
@@ -30,61 +30,95 @@ session_start();
    <a href="./logout.php" style="color: white; font-size: 1.5em">Выйти</a>
 </header>
 
-<h1 style=" text-align: center; font-size: 3.1em;">Каталог товаров</h1>
-<?php
-// Подключение к базе данных
-$conn = new mysqli("localhost", "root", "root", "shooterki");
+<h1 style=" display: flex; justify-content: center; align-items: center;">Формирование вашего заказа</h1>
+<br><br>
+    
+    <?php
 
-if ($conn->connect_error) {
-    die("Ошибка: " . $conn->connect_error);
-}
+if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['described']) && isset($_POST['price']) && isset($_POST['image'])){
 
-// Запрос к базе данных
-$query = "SELECT id, name, described, price, image, rate FROM tovar WHERE id > 0";
-$result = $conn->query($query);
+    
+    $conn = new mysqli("localhost","root","root","shooterki");
 
-// Проверка, есть ли записи
-if ($result->num_rows > 0) {
-    // Вывод записей в ряд по 4
-    echo '<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
-    $count = 0;
-    while ($row = $result->fetch_assoc()) {
-        echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.47); padding: 15px; border-radius: 8px; text-align: center; width: 40px; flex-direction: row;">';
-        echo '<form method="post" action="./zakaz.php">';
-        echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
-        echo '<input type="hidden" name="name" value="' . htmlspecialchars($row['name']) . '">';
-        echo '<input type="hidden" name="described" value="' . htmlspecialchars($row['described']) . '">';
-        echo '<input type="hidden" name="price" value="' . htmlspecialchars($row['price']) . '">';
-        echo '<input type="hidden" name="image" value="' . base64_encode($row['image']) . '">';
-        echo '<input type="hidden" name="rate" value="' . htmlspecialchars($row['rate']) . '">';
-        
-        echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . base64_encode($row['image']) . '" width="200px" height="200px" style="border-radius: 8px;"/>';
-        echo '<h2 style="font-size: 1.5em; margin: 10px 0;">' . htmlspecialchars($row['name']) . '</h2>';
-        echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['described']) . '</p>';
-        echo '<p style="font-size: 1em; color: #333; margin: 10px 0;">Рейтинг: ' . htmlspecialchars($row['rate']) . '</p>';
-        echo '<br>';
-        echo '<div style="display: flex; flex-direction: row; gap: 5px; text-align: center; align-item: center; justify-content: center;">';
-        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;">' . htmlspecialchars($row['price']) . '</h1>';
-        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;"> руб.</h1>';
-        echo '</div>';
-        echo '<br>';
-        echo '<input type="submit" value="Купить" style="background-color: rgba(61, 218, 113, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(61, 218, 113, 0.88);">';
-        echo '</form>';
-        echo '</div>';
-
-        $count++;
-        if ($count % 4 == 0) {
-            echo '</div><div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
-        }
+    if($conn->connect_error){
+        die("Ошибка:".$conn->connect_error);
     }
-    echo '</div>';
-} else {
-    // Если записей нет
-    echo '<p style="text-align: center; font-size: 1.2em; color: #555; margin: 20px;">Товаров временно нет в наличии</p>';
-}
 
-// Закрытие соединения
-$conn->close();
-?> 
+    $tovar = $conn->real_escape_string($_POST['name']);
+    $opis = $conn->real_escape_string($_POST['described']);
+    $price = $conn->real_escape_string($_POST['price']);
+    $chel =  $_SESSION['shooterki'];
+    $tovar_id = $_POST['id'];
+    $image = $_POST['image'];
+
+    echo '<div style=" display: flex; justify-content: center; align-items: center;">';
+
+
+    echo '<form method="post" action="./zakaz2.php">';
+
+    echo '<input type="hidden" name="id_tovar" value="' . $tovar_id . '">';
+    echo '<input type="hidden" name="id_user" value="' . $chel . '">';
+    echo '<input type="hidden"  name="images" value="' .$image. '">';
+    echo '<input type="hidden" name="tovar4ik" value="' . $tovar. '">';
+    echo '<input  type="hidden" name="prices" value="' .$price . '">';
+
+
+    echo '<div style=" display: flex; justify-content: center; align-items: center; flex-direction: column;">';
+    echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . htmlspecialchars( $image ). '" width="400px" height="400px" style="border-radius: 8px;"/>';
+    echo '<h2 style="font-size: 2.5em; margin: 10px 0;">' . htmlspecialchars($tovar) . '</h2>';
+    echo '<h2 style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($opis) .'</h2>';
+    echo '<br>';
+    echo '<div style="display: flex; flex-direction: row; gap: 5px; text-align: center; align-item: center; justify-content: center;">';
+    echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;">' . htmlspecialchars($price) . '</h1>';
+    echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;"> руб.</h1>';
+    echo '<select name="opll" htmlspecialchars>';
+    echo '<option value ="наличными">наличными';
+    echo '</option>';
+    echo '<option value ="картой">картой';
+    echo '</option>';
+    echo '</select>';
+    echo '</div>';
+    echo '<br>';
+    echo '<br>';
+    echo '<input type="submit" value="Оформить заказ" style="background-color: rgba(61, 218, 113, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(61, 218, 113, 0.88);">';
+
+    echo '</form>';
+    echo '</div>';
+    }
+    else{
+        echo 'nope';
+    }
+    ?>
 </body>
 </html>
+
+
+
+===================
+
+
+zakaz2.php:
+
+<?php
+session_start();
+?>
+
+<?php
+if(isset($_POST['id_tover']) && isset($_POST['id_user']) && isset($_POST['opll']) && isset($_POST['tovar4ik'])){
+
+    $uzer = $_POST['id_user'];
+    $tovar = $_POST['id_tovar'];
+    $oplata = $_POST['opll'];
+    $namez = $_POST['tovar4ik'];
+
+    $sql="INSERT INTO zakaz (name, dataz, time, oplata, id_users,id_tovar) VALUES ('$namez', NOW(), NOW(), '$oplata', '$uzer', '$uzer', '$tovar')";
+if($conn->query($sql)){
+header("Location: maine.php");
+}
+else{
+echo "Ошибка: ".$conn->error;
+}
+$conn->close();
+}
+
+?>
