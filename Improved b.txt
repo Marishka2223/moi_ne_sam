@@ -1,1 +1,23 @@
 
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
+
+class UserController extends Controller
+{
+    public function showSubscriptions()
+    {
+        // Получаем ID текущего пользователя
+        $userId = Auth::id();
+
+        // Получаем все подписки пользователя
+        $subscriptions = Bb::where('user_id', $userId)->get();
+
+        // Передаем подписки в представление
+        return view('user', [
+            'subscriptions' => $subscriptions,
+        ]);
+    }
+}
