@@ -1,45 +1,3 @@
-Subcontroller:
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use App\Models\Bb;
-use Illuminate\Support\Facades\Auth;
-
-class SubscriptionController extends Controller
-{
-    // Отображение страницы с выбором подписки
-    public function index()
-    {
-        return view('subscription');
-    }
-
-    // Обработка выбора подписки
-    public function store(Request $request)
-    {
-        // Валидация данных
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'price' => 'required|integer|in:3,6,12',
-        ]);
-
-        // Добавляем дополнительные данные
-        $validatedData['status'] = 'Активно'; // Статус подписки
-        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
-        $validatedData['created_at'] = now(); // Текущее время
-        $validatedData['updated_at'] = now(); // Текущее время
-
-        // Создание записи в таблице bbs
-        Bb::create($validatedData);
-
-        // Редирект с сообщением об успехе
-        return redirect()->route('subscription.index')->with('success', 'Подписка успешно оформлена!');
-    }
-}
-
-======
-
 Sub blade:
 
 <!DOCTYPE html>
@@ -53,17 +11,34 @@ Sub blade:
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+        .subscription-container {
+            display: flex;
+            gap: 20px;
+        }
+        .subscription-column {
+            border: 2px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+        }
+        .subscription-column h2 {
+            margin-top: 0;
+        }
+        .subscription-column button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .subscription-column button:hover {
+            background-color: #0056b3;
+        }
         .success {
             color: green;
             margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        textarea {
-            width: 300px;
-            height: 100px;
         }
     </style>
 </head>
@@ -77,145 +52,92 @@ Sub blade:
         </div>
     @endif
 
-    <!-- Форма выбора подписки -->
-    <form action="{{ route('subscription.store') }}" method="POST">
-        @csrf
-
-        <!-- Выбор срока подписки -->
-        <label>
-            <input type="radio" name="price" value="3" required> 3 месяца
-        </label>
-        <label>
-            <input type="radio" name="price" value="6"> 6 месяцев
-        </label>
-        <label>
-            <input type="radio" name="price" value="12"> 12 месяцев
-        </label>
-
-        <!-- Название подписки -->
-        <label>
-            Название подписки:
-            <input type="text" name="title" required>
-        </label>
-
-        <!-- Описание подписки -->
-        <label>
-            Описание подписки:
-            <textarea name="content" required></textarea>
-        </label>
-
-        <!-- Кнопка отправки формы -->
-        <button type="submit">Оформить подписку</button>
-    </form>
-</body>
-</html>Subcontroller:
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use App\Models\Bb;
-use Illuminate\Support\Facades\Auth;
-
-class SubscriptionController extends Controller
-{
-    // Отображение страницы с выбором подписки
-    public function index()
-    {
-        return view('subscription');
-    }
-
-    // Обработка выбора подписки
-    public function store(Request $request)
-    {
-        // Валидация данных
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'price' => 'required|integer|in:3,6,12',
-        ]);
-
-        // Добавляем дополнительные данные
-        $validatedData['status'] = 'Активно'; // Статус подписки
-        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
-        $validatedData['created_at'] = now(); // Текущее время
-        $validatedData['updated_at'] = now(); // Текущее время
-
-        // Создание записи в таблице bbs
-        Bb::create($validatedData);
-
-        // Редирект с сообщением об успехе
-        return redirect()->route('subscription.index')->with('success', 'Подписка успешно оформлена!');
-    }
-}
-
-======
-
-Sub blade:
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выбор подписки</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .success {
-            color: green;
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        textarea {
-            width: 300px;
-            height: 100px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Выберите подписку</h1>
-
-    <!-- Сообщение об успешном оформлении -->
-    @if(session('success'))
-        <div class="success">
-            {{ session('success') }}
+    <!-- Контейнер с тремя столбцами -->
+    <div class="subscription-container">
+        <!-- Подписка на 3 месяца -->
+        <div class="subscription-column">
+            <h2>Подписка на 3 месяца</h2>
+            <p>Описание подписки на 3 месяца. Идеально для краткосрочных проектов.</p>
+            <p><strong>Срок: 3 месяца</strong></p>
+            <form action="{{ route('subscription.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="title" value="Подписка на 3 месяца">
+                <input type="hidden" name="content" value="Описание подписки на 3 месяца. Идеально для краткосрочных проектов.">
+                <input type="hidden" name="price" value="3">
+                <button type="submit">Оформить</button>
+            </form>
         </div>
-    @endif
 
-    <!-- Форма выбора подписки -->
-    <form action="{{ route('subscription.store') }}" method="POST">
-        @csrf
+        <!-- Подписка на 6 месяцев -->
+        <div class="subscription-column">
+            <h2>Подписка на 6 месяцев</h2>
+            <p>Описание подписки на 6 месяцев. Отлично подходит для среднесрочных проектов.</p>
+            <p><strong>Срок: 6 месяцев</strong></p>
+            <form action="{{ route('subscription.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="title" value="Подписка на 6 месяцев">
+                <input type="hidden" name="content" value="Описание подписки на 6 месяцев. Отлично подходит для среднесрочных проектов.">
+                <input type="hidden" name="price" value="6">
+                <button type="submit">Оформить</button>
+            </form>
+        </div>
 
-        <!-- Выбор срока подписки -->
-        <label>
-            <input type="radio" name="price" value="3" required> 3 месяца
-        </label>
-        <label>
-            <input type="radio" name="price" value="6"> 6 месяцев
-        </label>
-        <label>
-            <input type="radio" name="price" value="12"> 12 месяцев
-        </label>
-
-        <!-- Название подписки -->
-        <label>
-            Название подписки:
-            <input type="text" name="title" required>
-        </label>
-
-        <!-- Описание подписки -->
-        <label>
-            Описание подписки:
-            <textarea name="content" required></textarea>
-        </label>
-
-        <!-- Кнопка отправки формы -->
-        <button type="submit">Оформить подписку</button>
-    </form>
+        <!-- Подписка на 12 месяцев -->
+        <div class="subscription-column">
+            <h2>Подписка на 12 месяцев</h2>
+            <p>Описание подписки на 12 месяцев. Лучший выбор для долгосрочных проектов.</p>
+            <p><strong>Срок: 12 месяцев</strong></p>
+            <form action="{{ route('subscription.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="title" value="Подписка на 12 месяцев">
+                <input type="hidden" name="content" value="Описание подписки на 12 месяцев. Лучший выбор для долгосрочных проектов.">
+                <input type="hidden" name="price" value="12">
+                <button type="submit">Оформить</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
+
+
+===
+
+Sub cintr:
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
+
+class SubscriptionController extends Controller
+{
+    // Отображение страницы с выбором подписки
+    public function index()
+    {
+        return view('subscription');
+    }
+
+    // Обработка выбора подписки
+    public function store(Request $request)
+    {
+        // Валидация данных
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'price' => 'required|integer|in:3,6,12',
+        ]);
+
+        // Добавляем дополнительные данные
+        $validatedData['status'] = 'Активно'; // Статус подписки
+        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
+        $validatedData['created_at'] = now(); // Текущее время
+        $validatedData['updated_at'] = now(); // Текущее время
+
+        // Создание записи в таблице bbs
+        Bb::create($validatedData);
+
+        // Редирект на страницу acpo
+        return redirect()->route('acpo')->with('success', 'Подписка успешно оформлена!');
+    }
+}
