@@ -78,15 +78,13 @@
             <h2 style="display: flex; align-items: center; justify-content: center;">{{ Auth::user()->name }}</h2>
         </div>
 
-        <div id="tuah" style="display: flex; position: relative; box-sizing: border-box; margin-left: 5%;">
+        <div id="tuah" style="display: flex; flex-direction: column; box-sizing: border-box; margin-left: 5%;">
             <h3>Ваши подписки:</h3>
-        </div>
-    </div>
-
-    <!-- Проверка наличия подписок -->
-    @if(isset($subscriptions) && $subscriptions->count() > 0)
+            <br><br><br>
+ <!-- Проверка наличия подписок -->
+    @if(isset($subs) && $subs->id > 0)
         <div class="subscription-container">
-            @foreach($subscriptions as $subscription)
+            @foreach($subs as $subscription)
                 <div class="subscription-item">
                     <!-- Картинка в зависимости от title -->
                     @if($subscription->title == 'Duck Standart')
@@ -104,7 +102,7 @@
 
                     <!-- Ссылка "Улучшить план" -->
                     @if($subscription->status == 'Активно')
-                        <a href="{{ route('upgrade.plan', ['id' => $subscription->id]) }}">Улучшить план</a>
+                        <a href="{{ route('checkpoint', ['id' => $subscription->id]) }}">Улучшить план</a>
                     @endif
                 </div>
             @endforeach
@@ -112,6 +110,11 @@
     @else
         <p>У вас пока нет подписок. <a href="{{ route('subscription') }}">Оформите подписку</a>.</p>
     @endif
+
+        </div>
+    </div>
+
+   
 </div>
 <br><br><br><br><br><br><br><br><br><br><br><br>
 <footer class="footer" style="display: flex; justify-content: flex-end;">
