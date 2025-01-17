@@ -1,1 +1,61 @@
 
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
+
+class SubscriptionController extends Controller
+{
+    // Отображение страницы с выбором подписки
+    public function index()
+    {
+        // Проверяем, есть ли у пользователя активная подписка
+        $hasActiveSubscription = $this->hasActiveSubscription();
+
+        // Передаем данные в представление
+        return view('subscription', [
+            'hasActiveSubscription' => $hasActiveSubscription,
+        ]);
+    }
+
+    // Обработка выбора подписки
+    public function store(Request $request)
+    {
+        // Проверяем, есть ли у пользователя активная подписка
+        if ($this->hasActiveSubscription()) {
+            return redirect()->route('home')->with('error', 'У вас уже есть активная подписка.');
+        }
+
+        // Валидация данных
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'price' => 'required|integer|in:3,6,12',
+        ]);
+
+        // Добавляем дополнительные данные
+        $validatedData['status'] = 'Активно'; // Статус подписки
+        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
+        $validatedData['created_at'] = now(); // Текущее время
+        $validatedData['updated_at'] = now(); // Текущее время
+
+        // Создание записи в таблице bbs
+        Bb::create($validatedData);
+
+        // Редирект на страницу acpo
+        return redirect()->route('acpo')->with('success', 'Подписка успешно оформлена!');
+    }
+
+    // Проверка наличия активной подписки у пользователя
+    private function hasActiveSubscription()
+    {
+        // Получаем ID текущего пользователя
+        $userId = Auth::id();
+
+        // Проверяем, есть ли у пользователя активная подписка
+        return Bb::where('user_id', $userId)
+            ->where('status', 'Активно')
+            ->exists();
+    }
+}
