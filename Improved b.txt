@@ -1,1 +1,53 @@
+namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
+
+class UpgradePlanController extends Controller
+{
+    // Показать доступные варианты улучшения
+    public function showUpgradeOptions($id)
+    {
+        // Получаем текущую подписку
+        $subscription = Bb::findOrFail($id);
+
+        // Определяем доступные варианты улучшения
+        $availablePlans = [];
+        if ($subscription->price == 3) {
+            $availablePlans = [
+                ['title' => 'Duck+', 'price' => 6],
+                ['title' => 'Duck PREMIUM', 'price' => 12],
+            ];
+        } elseif ($subscription->price == 6) {
+            $availablePlans = [
+                ['title' => 'Duck PREMIUM', 'price' => 12],
+            ];
+        }
+
+        return view('upgrade-plan', [
+            'subscription' => $subscription,
+            'availablePlans' => $availablePlans,
+        ]);
+    }
+
+    // Обработка улучшения плана
+    public function upgradePlan(Request $request, $id)
+    {
+        // Валидация данных
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'price' => 'required|integer|in:6,12',
+        ]);
+
+        // Обновляем подписку
+        $subscription = Bb::findOrFail($id);
+        $subscription->update([
+            'title' => $request->title,
+            'price' => $request->price,
+            'status' => 'Активно',
+        ]);
+
+        return redirect()->route('user.subscriptions')->with('success', 'План успешно улучшен!');
+    }
+}
