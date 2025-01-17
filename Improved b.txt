@@ -1,9 +1,1 @@
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\UpgradePlanController;
 
-// Страница пользователя с подписками
-Route::get('/user', [UserController::class, 'showSubscriptions'])->name('user.subscriptions');
-
-// Страница улучшения плана
-Route::get('/upgrade-plan/{id}', [UpgradePlanController::class, 'showUpgradeOptions'])->name('upgrade.plan');
-Route::post('/upgrade-plan/{id}', [UpgradePlanController::class, 'upgradePlan'])->name('upgrade.plan.submit');
