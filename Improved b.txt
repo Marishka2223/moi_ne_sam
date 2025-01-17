@@ -1,92 +1,221 @@
-    <?php
-    session_start();
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Корзина</title>
-    </head>
-    <body>
-    <header style="display: flex; background-color: rgba(27, 27, 27, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
+Subcontroller:
 
-        <h1>TechStore</h1>
+namespace App\Http\Controllers;
 
-        <a href="./maine.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
 
-        <?php
-        if (isset($_SESSION['shooterki']) && $_SESSION['shooterki'] === '7') {
-            echo '<a href="./admin.php" style="color: white; font-size: 1.5em">Админ панель</a>';
+class SubscriptionController extends Controller
+{
+    // Отображение страницы с выбором подписки
+    public function index()
+    {
+        return view('subscription');
+    }
+
+    // Обработка выбора подписки
+    public function store(Request $request)
+    {
+        // Валидация данных
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'price' => 'required|integer|in:3,6,12',
+        ]);
+
+        // Добавляем дополнительные данные
+        $validatedData['status'] = 'Активно'; // Статус подписки
+        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
+        $validatedData['created_at'] = now(); // Текущее время
+        $validatedData['updated_at'] = now(); // Текущее время
+
+        // Создание записи в таблице bbs
+        Bb::create($validatedData);
+
+        // Редирект с сообщением об успехе
+        return redirect()->route('subscription.index')->with('success', 'Подписка успешно оформлена!');
+    }
+}
+
+======
+
+Sub blade:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор подписки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-
-        if (isset($_SESSION['shooterki']) && $_SESSION['shooterki'] != '7') {
-            echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
+        .success {
+            color: green;
+            margin-bottom: 20px;
         }
-        ?>
-    <a href="./logout.php" style="color: white; font-size: 1.5em">Выйти</a>
-    </header>
-
-    <h1 style=" display: flex; justify-content: center; align-items: center;">Формирование вашего заказа</h1>
-    <br><br>
-        
-        <?php
-
-    if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['described']) && isset($_POST['price']) && isset($_POST['image'])){
-
-        
-        $conn = new mysqli("localhost","root","root","shooterki");
-
-        if($conn->connect_error){
-            die("Ошибка:".$conn->connect_error);
+        label {
+            display: block;
+            margin-bottom: 10px;
         }
-
-        $tovar = $conn->real_escape_string($_POST['name']);
-        $opis = $conn->real_escape_string($_POST['described']);
-        $price = $conn->real_escape_string($_POST['price']);
-        $chel =  $_SESSION['shooterki'];
-        $tovar_id = $_POST['id'];
-        $image = $_POST['image'];
-
-        echo '<div style=" display: flex; justify-content: center; align-items: center;">';
-
-
-        echo '<form method="post" action="./zakaz2.php">';
-
-        echo '<input type="hidden" name="id_tovar" value="' . $tovar_id . '">';
-        echo '<input type="hidden" name="id_user" value="' . $chel . '">';
-        echo '<input type="hidden"  name="images" value="' .$image. '">';
-        echo '<input type="hidden" name="tovar4ik" value="' . $tovar. '">';
-        echo '<input  type="hidden" name="prices" value="' .$price . '">';
-    
-
-
-
-        echo '<div style=" display: flex; justify-content: center; align-items: center; flex-direction: column;">';
-        echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . htmlspecialchars( $image ). '" width="400px" height="400px" style="border-radius: 8px;"/>';
-        echo '<h2 style="font-size: 2.5em; margin: 10px 0;">' . htmlspecialchars($tovar) . '</h2>';
-        echo '<h2 style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($opis) .'</h2>';
-        echo '<br>';
-        echo '<div style="display: flex; flex-direction: row; gap: 5px; text-align: center; align-item: center; justify-content: center;">';
-        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;">' . htmlspecialchars($price) . '</h1>';
-        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;"> руб.</h1>';
-        echo '<select name="opll" htmlspecialchars>';
-        echo '<option value ="наличными">наличными';
-        echo '</option>';
-        echo '<option value ="картой">картой';
-        echo '</option>';
-        echo '</select>';
-        echo '</div>';
-        echo '<br>';
-        echo '<br>';
-        echo '<input type="submit" value="Оформить заказ" style="background-color: rgba(61, 218, 113, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(61, 218, 113, 0.88);">';
-
-        echo '</form>';
-        echo '</div>';
+        textarea {
+            width: 300px;
+            height: 100px;
         }
-        else{
-            echo 'nope';
+    </style>
+</head>
+<body>
+    <h1>Выберите подписку</h1>
+
+    <!-- Сообщение об успешном оформлении -->
+    @if(session('success'))
+        <div class="success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <!-- Форма выбора подписки -->
+    <form action="{{ route('subscription.store') }}" method="POST">
+        @csrf
+
+        <!-- Выбор срока подписки -->
+        <label>
+            <input type="radio" name="price" value="3" required> 3 месяца
+        </label>
+        <label>
+            <input type="radio" name="price" value="6"> 6 месяцев
+        </label>
+        <label>
+            <input type="radio" name="price" value="12"> 12 месяцев
+        </label>
+
+        <!-- Название подписки -->
+        <label>
+            Название подписки:
+            <input type="text" name="title" required>
+        </label>
+
+        <!-- Описание подписки -->
+        <label>
+            Описание подписки:
+            <textarea name="content" required></textarea>
+        </label>
+
+        <!-- Кнопка отправки формы -->
+        <button type="submit">Оформить подписку</button>
+    </form>
+</body>
+</html>Subcontroller:
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
+
+class SubscriptionController extends Controller
+{
+    // Отображение страницы с выбором подписки
+    public function index()
+    {
+        return view('subscription');
+    }
+
+    // Обработка выбора подписки
+    public function store(Request $request)
+    {
+        // Валидация данных
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'price' => 'required|integer|in:3,6,12',
+        ]);
+
+        // Добавляем дополнительные данные
+        $validatedData['status'] = 'Активно'; // Статус подписки
+        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
+        $validatedData['created_at'] = now(); // Текущее время
+        $validatedData['updated_at'] = now(); // Текущее время
+
+        // Создание записи в таблице bbs
+        Bb::create($validatedData);
+
+        // Редирект с сообщением об успехе
+        return redirect()->route('subscription.index')->with('success', 'Подписка успешно оформлена!');
+    }
+}
+
+======
+
+Sub blade:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор подписки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        ?>
-    </body>
-    </html>
+        .success {
+            color: green;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 300px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Выберите подписку</h1>
+
+    <!-- Сообщение об успешном оформлении -->
+    @if(session('success'))
+        <div class="success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <!-- Форма выбора подписки -->
+    <form action="{{ route('subscription.store') }}" method="POST">
+        @csrf
+
+        <!-- Выбор срока подписки -->
+        <label>
+            <input type="radio" name="price" value="3" required> 3 месяца
+        </label>
+        <label>
+            <input type="radio" name="price" value="6"> 6 месяцев
+        </label>
+        <label>
+            <input type="radio" name="price" value="12"> 12 месяцев
+        </label>
+
+        <!-- Название подписки -->
+        <label>
+            Название подписки:
+            <input type="text" name="title" required>
+        </label>
+
+        <!-- Описание подписки -->
+        <label>
+            Описание подписки:
+            <textarea name="content" required></textarea>
+        </label>
+
+        <!-- Кнопка отправки формы -->
+        <button type="submit">Оформить подписку</button>
+    </form>
+</body>
+</html>
