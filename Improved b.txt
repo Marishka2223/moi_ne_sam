@@ -1,5 +1,1 @@
-// ДЛЯ ОБНОВЛЕНИЯ ПОДПИСКИ: отображение страницы с выбором подписки
-Route::get('/upgrade', [RelodController::class, 'index'])->name('upgrade.index');
 
-// ДЛЯ ОБНОВЛЕНИЯ ПОДПИСКИ: обработка обновления подписки
-Route::post('/upgrade', [RelodController::class, 'update'])->name('upgrade.update');
