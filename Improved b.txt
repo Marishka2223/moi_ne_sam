@@ -1,120 +1,70 @@
+controller:
+
 <?php
 
-// Имитация модели (для примера)
-class Bb
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Bb;
+use Illuminate\Support\Facades\Auth;
+
+class SubscriptionController extends Controller
 {
-    public $id;
-    public $title;
-    public $price;
-    public $status;
-
-    public static function findOrFail($id)
+    // Отображение страницы с выбором подписки
+    public function index()
     {
-        // Имитация поиска подписки в базе данных
-        $subscription = new self();
-        $subscription->id = $id;
-        $subscription->title = 'Текущий план';
-        $subscription->price = 3; // Имитация текущей цены
-        $subscription->status = 'Активно';
-        return $subscription;
+        return view('subscription');
     }
 
-    public function update($data)
+    // Обработка выбора подписки
+    public function store(Request $request)
     {
-        // Имитация обновления подписки
-        foreach ($data as $key => $value) {
-            $this->$key = $value;
-        }
-    }
-}
-
-// Имитация контроллера
-class UpgradePlanController
-{
-    // Показать доступные варианты улучшения
-    public function showUpgradeOptions($id)
-    {
-        // Получаем текущую подписку
-        $subscription = Bb::findOrFail($id);
-
-        // Определяем доступные варианты улучшения
-        $availablePlans = [];
-        if ($subscription->price == 3) {
-            $availablePlans = [
-                ['title' => 'Duck+', 'price' => 6],
-                ['title' => 'Duck PREMIUM', 'price' => 12],
-            ];
-        } elseif ($subscription->price == 6) {
-            $availablePlans = [
-                ['title' => 'Duck PREMIUM', 'price' => 12],
-            ];
-        }
-
-        // Рендерим представление
-        $this->renderView('upgrade-plan', [
-            'subscription' => $subscription,
-            'availablePlans' => $availablePlans,
-        ]);
-    }
-
-    // Обработка улучшения плана
-    public function upgradePlan($id)
-    {
-        // Имитация данных из POST-запроса
-        $title = $_POST['title'];
-        $price = $_POST['price'];
-
         // Валидация данных
-        if (empty($title) || !in_array($price, [6, 12])) {
-            die('Ошибка валидации данных.');
-        }
-
-        // Обновляем подписку
-        $subscription = Bb::findOrFail($id);
-        $subscription->update([
-            'title' => $title,
-            'price' => $price,
-            'status' => 'Активно',
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'price' => 'required|integer|in:3,6,12',
         ]);
 
-        // Перенаправляем пользователя (имитация)
-        header('Location: /user/subscriptions');
-        exit;
-    }
+        // Добавляем дополнительные данные
+        $validatedData['status'] = 'Активно'; // Статус подписки
+        $validatedData['user_id'] = Auth::id(); // ID текущего пользователя
+        $validatedData['created_at'] = now(); // Текущее время
+        $validatedData['updated_at'] = now(); // Текущее время
 
-    // Функция для рендеринга представления
-    private function renderView($view, $data = [])
-    {
-        extract($data);
-        include __DIR__ . "/$view.php";
+        // Создание записи в таблице bbs
+        Bb::create($validatedData);
+
+        // Редирект с сообщением об успехе
+        return redirect()->route('checkpoint')->with('success', 'Подписка успешно оформлена!');
     }
 }
 
-// Имитация маршрутизации
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
-    $controller = new UpgradePlanController();
-    $controller->showUpgradeOptions($_GET['id']);
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title']) && isset($_POST['price'])) {
-    $controller = new UpgradePlanController();
-    $controller->upgradePlan($_POST['id']);
-} else {
-    die('Неверный запрос.');
-}
 
-// Представление (upgrade-plan.php)
-$view = <<<HTML
+
+===================
+web:
+//ДЛЯ ПОДПИСКИ: отображение страницы с выбором подписок
+Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+//ДЛЯ ПОДПИСКИ: обработка выбора подписки
+Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
+
+====================
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Улучшение плана</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Выбор подписки</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
         .subscription-container {
             display: flex;
             gap: 20px;
-            margin-top: 20px;
         }
         .subscription-column {
             border: 2px solid #ccc;
@@ -122,6 +72,9 @@ $view = <<<HTML
             border-radius: 10px;
             text-align: center;
             flex: 1;
+        }
+        .subscription-column h2 {
+            margin-top: 0;
         }
         .subscription-column button {
             background-color: #ffa500;
@@ -134,31 +87,74 @@ $view = <<<HTML
         .subscription-column button:hover {
             background-color: rgb(245, 188, 82);
         }
+        .success {
+            color: green;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-<div style="display: flex; flex-direction: column;">
-    <h1 style="display: flex; justify-content: center; font-size: 3em;">Улучшение плана</h1>
+@extends('layouts.app')
+<br><br><br><br>
+<br><br><br><br>
+    <h1 style=" display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; font-size: 3em;">Выберите подписку</h1>
     <br><br><br>
 
+    <!-- Сообщение об успешном оформлении -->
+    @if(session('success'))
+        <div class="success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <!-- Контейнер с тремя столбцами -->
     <div class="subscription-container">
-        <?php foreach ($availablePlans as $plan): ?>
-            <div class="subscription-column">
-                <h2><?= htmlspecialchars($plan['title']) ?></h2>
-                <p>Срок: <?= htmlspecialchars($plan['price']) ?> месяцев</p>
-                <form action="" method="POST">
-                    <input type="hidden" name="id" value="<?= $subscription->id ?>">
-                    <input type="hidden" name="title" value="<?= htmlspecialchars($plan['title']) ?>">
-                    <input type="hidden" name="price" value="<?= htmlspecialchars($plan['price']) ?>">
-                    <button type="submit">Выбрать</button>
-                </form>
-            </div>
-        <?php endforeach; ?>
+        <!-- Подписка на 3 месяца -->
+        <div class="subscription-column">
+            <h2>Duck Standart</h2>
+            <p></p>
+            <p>Премиум для аккаунта на 3 месяца</p>
+
+            <form action="{{ route('subscription.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="title" value="Duck Standart">
+                <input type="hidden" name="content" value="Премиум для аккаунта на 3 месяца">
+                <input type="hidden" name="price" value="3">
+                <button type="submit">Оформить</button>
+            </form>
+        </div>
+
+        <!-- Подписка на 6 месяцев -->
+        <div class="subscription-column">
+            <h2>Duck+</h2>
+            <p></p>
+            <p>Премиум для аккаунта на 6 месяцев</p>
+            <form action="{{ route('subscription.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="title" value="Duck+">
+                <input type="hidden" name="content" value="Премиум для аккаунта на 6 месяцев">
+                <input type="hidden" name="price" value="6">
+                <button type="submit">Оформить</button>
+            </form>
+        </div>
+
+        <!-- Подписка на 12 месяцев -->
+        <div class="subscription-column">
+            <h2>Duck PREMIUM</h2>
+            <p></p>
+            <p>Премиум для аккаунта на 12 месяцев</p>
+            <form action="{{ route('subscription.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="title" value="Duck PREMIUM">
+                <input type="hidden" name="content" value="Премиум для аккаунта на 12 месяцев">
+                <input type="hidden" name="price" value="12">
+                <button type="submit">Оформить</button>
+            </form>
+        </div>
     </div>
-</div>
 </body>
 </html>
-HTML;
 
-// Сохранение представления в файл
-file_put_contents(__DIR__ . '/upgrade-plan.php', $view);
