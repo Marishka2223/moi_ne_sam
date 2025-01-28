@@ -1,1 +1,156 @@
 
+<?php
+
+// Имитация класса модели Bb
+class Bb
+{
+    public static function findOrFail($id)
+    {
+        // Пример данных для подписки
+        $subscriptions = [
+            1 => ['id' => 1, 'title' => 'Duck Basic', 'price' => 3, 'status' => 'Активно'],
+            2 => ['id' => 2, 'title' => 'Duck+', 'price' => 6, 'status' => 'Активно'],
+            3 => ['id' => 3, 'title' => 'Duck PREMIUM', 'price' => 12, 'status' => 'Активно'],
+        ];
+
+        if (isset($subscriptions[$id])) {
+            return (object) $subscriptions[$id];
+        }
+
+        throw new Exception("Подписка не найдена");
+    }
+}
+
+// Имитация класса контроллера
+class UpgradePlanController
+{
+    // Показать доступные варианты улучшения
+    public function showUpgradeOptions($id)
+    {
+        // Получаем текущую подписку
+        $subscription = Bb::findOrFail($id);
+
+        // Определяем доступные варианты улучшения
+        $availablePlans = [];
+        if ($subscription->price == 3) {
+            $availablePlans = [
+                ['title' => 'Duck+', 'price' => 6],
+                ['title' => 'Duck PREMIUM', 'price' => 12],
+            ];
+        } elseif ($subscription->price == 6) {
+            $availablePlans = [
+                ['title' => 'Duck PREMIUM', 'price' => 12],
+            ];
+        }
+
+        // Рендерим представление
+        return $this->view('upgrade-plan', [
+            'subscription' => $subscription,
+            'availablePlans' => $availablePlans,
+        ]);
+    }
+
+    // Обработка улучшения плана
+    public function upgradePlan($id, $request)
+    {
+        // Валидация данных
+        if (empty($request['title']) || !in_array($request['price'], [6, 12])) {
+            throw new Exception("Неверные данные");
+        }
+
+        // Обновляем подписку
+        $subscription = Bb::findOrFail($id);
+        $subscription->title = $request['title'];
+        $subscription->price = $request['price'];
+        $subscription->status = 'Активно';
+
+        // Редирект (в реальном проекте это было бы через header())
+        echo "План успешно улучшен!";
+        exit;
+    }
+
+    // Простая функция для рендеринга представления
+    private function view($template, $data = [])
+    {
+        extract($data);
+        ob_start();
+        include $template . '.php';
+        return ob_get_clean();
+    }
+}
+
+// Имитация маршрутизации
+$uri = $_SERVER['REQUEST_URI'];
+$method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'GET' && preg_match('/^\/upgrade-plan\/(\d+)$/', $uri, $matches)) {
+    $controller = new UpgradePlanController();
+    echo $controller->showUpgradeOptions($matches[1]);
+} elseif ($method === 'POST' && preg_match('/^\/upgrade-plan\/(\d+)$/', $uri, $matches)) {
+    $controller = new UpgradePlanController();
+    $controller->upgradePlan($matches[1], $_POST);
+} else {
+    echo "Страница не найдена";
+    exit;
+}
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Улучшение плана</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .subscription-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .subscription-column {
+            border: 2px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+        }
+        .subscription-column button {
+            background-color: #ffa500;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .subscription-column button:hover {
+            background-color: rgb(245, 188, 82);
+        }
+    </style>
+</head>
+<body>
+<div style="display: flex; flex-direction: column;">
+    <h1 style="display: flex; justify-content: center; font-size: 3em;">Улучшение плана</h1>
+    <br><br><br>
+
+    <div class="subscription-container">
+        <?php if (!empty($availablePlans)): ?>
+            <?php foreach ($availablePlans as $plan): ?>
+                <div class="subscription-column">
+                    <h2><?= htmlspecialchars($plan['title']) ?></h2>
+                    <p>Срок: <?= htmlspecialchars($plan['price']) ?> месяцев</p>
+                    <form action="/upgrade-plan/<?= $subscription->id ?>" method="POST">
+                        <input type="hidden" name="title" value="<?= htmlspecialchars($plan['title']) ?>">
+                        <input type="hidden" name="price" value="<?= htmlspecialchars($plan['price']) ?>">
+                        <button type="submit">Выбрать</button>
+                    </form>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>Нет доступных планов для улучшения.</p>
+        <?php endif; ?>
+    </div>
+</div>
+</body>
+</html>
