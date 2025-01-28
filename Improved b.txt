@@ -1,1 +1,44 @@
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
+Route::get('/update-subscription', function (Request $request) {
+    // Получаем ID записи из запроса
+    $id = $request->input('id');
+
+    // Находим запись в таблице bbs
+    $bbs = DB::table('bbs')->where('id', $id)->first();
+
+    if (!$bbs) {
+        return "Запись не найдена";
+    }
+
+    // Логика обновления подписки
+    if ($bbs->price == 3) {
+        // Если price = 3, обновляем на 6 и 12 месяцев
+        DB::table('bbs')
+            ->where('id', $id)
+            ->update([
+                'price' => 6,
+                'status' => 'active',
+            ]);
+
+        // Создаем новую запись для 12 месяцев
+        DB::table('bbs')->insert([
+            'title' => $bbs->title,
+            'price' => 12,
+            'status' => 'active',
+        ]);
+    } elseif ($bbs->price == 6) {
+        // Если price = 6, обновляем на 12 месяцев
+        DB::table('bbs')
+            ->where('id', $id)
+            ->update([
+                'price' => 12,
+                'status' => 'active',
+            ]);
+    } else {
+        return "Невозможно обновить подписку для данной записи";
+    }
+
+    return "Подписка успешно обновлена";
+});
