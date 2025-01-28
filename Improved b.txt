@@ -50,6 +50,7 @@ Route::get('/subscription', [SubscriptionController::class, 'index'])->name('sub
 Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
 
 ====================
+subscription.blade:
 
 <!DOCTYPE html>
 <html lang="en">
