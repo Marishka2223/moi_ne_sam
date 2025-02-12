@@ -35,9 +35,10 @@ session_start();
 
 <!-- Добавляем input для поиска по имени -->
 <form method="get" action="">
-    <label for="name">Поиск по имени:</label>
-    <input type="text" name="name" id="name" value="<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>">
-    <input type="submit" value="Найти">
+    <div style=" text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">
+    <input  style="height: 20px;  width: 1000px;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.23); border-radius: 20px; padding: 15px; " type="text" placeholder="введите название..." name="name" id="name" value="<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>">
+    <input type="submit" value="Найти" style="margin-top: 10px; height: 50px; width: 100px;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.23); border-radius: 20px; padding: 15px; ext-align: center;  ">
+    </div>
 </form>
 
 <?php
@@ -60,11 +61,11 @@ $result = $conn->query($query);
 
 // Проверка, есть ли записи
 if ($result->num_rows > 0) {
-    // Вывод записей в ряд по 4
+    // Вывод записей в ряд по 3
     echo '<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
     $count = 0;
     while ($row = $result->fetch_assoc()) {
-        echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.47); padding: 15px; border-radius: 8px; text-align: center; width: 40px; flex-direction: row;">';
+        echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.47); padding: 15px; text-align: center; width: 40px; flex-direction: row;">';
         echo '<form method="post" action="./zakaz.php">';
         echo '<input type="hidden" name="action" value="add">';
         echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
@@ -78,16 +79,12 @@ if ($result->num_rows > 0) {
         echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['content']) . '</p>';
         echo '<p style="font-size: 1em; color: #333; margin: 10px 0;">Рейтинг: ' . htmlspecialchars($row['rate']) . '</p>';
         echo '<br>';
-        echo '<div style="display: flex; flex-direction: row; gap: 5px; text-align: center; align-item: center; justify-content: center;">';
-        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;"> руб.</h1>';
-        echo '</div>';
-        echo '<br>';
-        echo '<input type="submit" value="Купить" style="background-color: rgba(61, 218, 113, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(61, 218, 113, 0.88);">';
+        echo '<input type="submit" value="Отозваться" style="background-color: rgba(255, 165, 62, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(255, 165, 62, 0.88);">';
         echo '</form>';
         echo '</div>';
 
         $count++;
-        if ($count % 4 == 0) {
+        if ($count % 3 == 0) {
             echo '</div><div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
         }
     }
