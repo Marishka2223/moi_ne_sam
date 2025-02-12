@@ -1,158 +1,113 @@
-### Информационно-логическая модель системы для музыкального стримингового сервиса "Duck Player"
+<?php
+session_start();
+?>
 
-Информационно-логическая модель (ИЛМ) описывает структуру данных, их взаимосвязи и основные процессы в системе. Для разработки сайта на Laravel с функцией регистрации, авторизации и оформления подписки на музыкальный стриминговый сервис "Duck Player" можно выделить следующие сущности и их связи.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доска объявлений</title>
+</head>
+<body>
 
----
+<header style="display: flex; background-color: rgba(252, 149, 53, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
 
-### Основные сущности системы:
-1. **Пользователь (User)**
-   - id (Primary Key)
-   - name (имя пользователя)
-   - email (электронная почта)
-   - password (пароль)
-   - role (роль: пользователь, администратор)
-   - created_at (дата регистрации)
-   - updated_at (дата обновления)
+    <a href="./ads.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
 
-2. **Подписка (Subscription)**
-   - id (Primary Key)
-   - user_id (Foreign Key → User)
-   - plan_id (Foreign Key → SubscriptionPlan)
-   - start_date (дата начала подписки)
-   - end_date (дата окончания подписки)
-   - status (статус подписки: активна, истекла, отменена)
+    <?php
 
-3. **Тарифный план (SubscriptionPlan)**
-   - id (Primary Key)
-   - name (название тарифа)
-   - price (цена)
-   - duration (длительность подписки в днях)
-   - features (описание возможностей тарифа)
 
-4. **Музыкальный трек (Track)**
-   - id (Primary Key)
-   - title (название трека)
-   - artist (исполнитель)
-   - album (альбом)
-   - duration (длительность трека)
-   - file_path (путь к аудиофайлу)
-   - cover_path (путь к обложке)
-   - created_at (дата добавления)
-   - updated_at (дата обновления)
+    if (isset($_SESSION['modulez']) && $_SESSION['modulez'] === 'admin') {
+        echo '<a href="./admin.php" style="color: white; font-size: 1.5em">Админ панель</a>';
+        echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
+    }
 
-5. **Плейлист (Playlist)**
-   - id (Primary Key)
-   - user_id (Foreign Key → User)
-   - name (название плейлиста)
-   - description (описание плейлиста)
-   - created_at (дата создания)
-   - updated_at (дата обновления)
+    if (isset($_SESSION['modulez']) && $_SESSION['modulez'] != 'admin') {
+        echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
+        echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
 
-6. **Треки в плейлисте (PlaylistTrack)**
-   - id (Primary Key)
-   - playlist_id (Foreign Key → Playlist)
-   - track_id (Foreign Key → Track)
-   - order (порядок трека в плейлисте)
+    }
+    if (!isset($_SESSION['modulez']) ) {
+        echo '<a href="./vxod.php" style="color: white; font-size: 1.5em">Войти</a>';
+    }
+    ?>
+</header>
 
-7. **Платеж (Payment)**
-   - id (Primary Key)
-   - user_id (Foreign Key → User)
-   - subscription_id (Foreign Key → Subscription)
-   - amount (сумма платежа)
-   - payment_date (дата платежа)
-   - status (статус платежа: успешно, ошибка)
+<h1 style=" text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">Объявления</h1>
 
----
+<!-- Добавляем select для фильтрации по рейтингу -->
+<form method="get" action="">
+    <label for="rate">Фильтр по рейтингу:</label>
+    <select name="rate" id="rate" onchange="this.form.submit()">
+        <option value="">Все</option>
+        <option value="Супер" <?php echo (isset($_GET['rate']) && $_GET['rate'] == 'Супер') ? 'selected' : ''; ?>>Супер</option>
+        <option value="Хорошо" <?php echo (isset($_GET['rate']) && $_GET['rate'] == 'Хорошо') ? 'selected' : ''; ?>>Хорошо</option>
+        <option value="Нормально" <?php echo (isset($_GET['rate']) && $_GET['rate'] == 'Нормально') ? 'selected' : ''; ?>>Нормально</option>
+        <option value="Плохо" <?php echo (isset($_GET['rate']) && $_GET['rate'] == 'Плохо') ? 'selected' : ''; ?>>Плохо</option>
+        <option value="Ужасно" <?php echo (isset($_GET['rate']) && $_GET['rate'] == 'Ужасно') ? 'selected' : ''; ?>>Ужасно</option>
+    </select>
+</form>
 
-### Связи между сущностями:
-1. **Пользователь (User)** может иметь одну активную **Подписку (Subscription)**.
-2. **Подписка (Subscription)** связана с **Тарифным планом (SubscriptionPlan)**.
-3. **Пользователь (User)** может создавать несколько **Плейлистов (Playlist)**.
-4. **Плейлист (Playlist)** может содержать несколько **Треков (Track)** через таблицу **Треки в плейлисте (PlaylistTrack)**.
-5. **Платеж (Payment)** связан с **Пользователем (User)** и **Подпиской (Subscription)**.
+<?php
+// Подключение к базе данных
+$conn = new mysqli("localhost", "root", "root", "modulez");
 
----
+if ($conn->connect_error) {
+    die("Ошибка: " . $conn->connect_error);
+}
 
-### Диаграмма информационно-логической модели:
-Ниже приведено текстовое описание диаграммы. Для визуализации можно использовать инструменты, такие как Lucidchart, Draw.io или MySQL Workbench.
+// Запрос к базе данных с учетом фильтрации по рейтингу
+$query = "SELECT id, name, content, image, email_users rate FROM goods WHERE id > 0";
 
-```
-+----------------+       +----------------+       +-------------------+
-|    User        |       | Subscription   |       | SubscriptionPlan  |
-|----------------|       |----------------|       |-------------------|
-| id (PK)        |<------| user_id (FK)   |       | id (PK)           |
-| name           |       | plan_id (FK)   |------>| name              |
-| email          |       | start_date     |       | price             |
-| password       |       | end_date       |       | duration          |
-| role           |       | status         |       | features          |
-| created_at     |       +----------------+       +-------------------+
-| updated_at     |
-+----------------+
-        |
-        | 1
-        | *
-+----------------+       +-------------------+
-| Playlist       |       | PlaylistTrack     |
-|----------------|       |-------------------|
-| id (PK)        |<------| playlist_id (FK)  |
-| user_id (FK)   |       | track_id (FK)     |
-| name           |       | order             |
-| description    |       +-------------------+
-| created_at     |               |
-| updated_at     |               | *
-+----------------+               |
-        |                        |
-        | 1                      |
-        | *                      |
-+----------------+               |
-| Track          |<--------------+
-|----------------|
-| id (PK)        |
-| title          |
-| artist         |
-| album          |
-| duration       |
-| file_path      |
-| cover_path     |
-| created_at     |
-| updated_at     |
-+----------------+
-        |
-        | *
-+----------------+
-| Payment        |
-|----------------|
-| id (PK)        |
-| user_id (FK)   |
-| subscription_id|
-| amount         |
-| payment_date   |
-| status         |
-+----------------+
-```
+if (isset($_GET['rate']) && !empty($_GET['rate'])) {
+    $rate = $_GET['rate'];
+    $query .= " AND rate = '$rate'";
+}
 
----
+$result = $conn->query($query);
 
-### Описание процессов:
-1. **Регистрация и авторизация:**
-   - Пользователь регистрируется, вводя свои данные (имя, email, пароль).
-   - После регистрации пользователь может авторизоваться в системе.
+// Проверка, есть ли записи
+if ($result->num_rows > 0) {
+    // Вывод записей в ряд по 4
+    echo '<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
+    $count = 0;
+    while ($row = $result->fetch_assoc()) {
+        echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.47); padding: 15px; border-radius: 8px; text-align: center; width: 40px; flex-direction: row;">';
+        echo '<form method="post" action="./zakaz.php">';
+        echo '<input type="hidden" name="action" value="add">';
+        echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
+        echo '<input type="hidden" name="name" value="' . htmlspecialchars($row['name']) . '">';
+        echo '<input type="hidden" name="described" value="' . htmlspecialchars($row['content']) . '">';
+        echo '<input type="hidden" name="image" value="' . base64_encode($row['image']) . '">';
+        echo '<input type="hidden" name="rate" value="' . htmlspecialchars($row['rate']) . '">';
+        
+        echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . base64_encode($row['image']) . '" width="200px" height="200px" style="border-radius: 8px;"/>';
+        echo '<h2 style="font-size: 1.5em; margin: 10px 0;">' . htmlspecialchars($row['name']) . '</h2>';
+        echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['content']) . '</p>';
+        echo '<p style="font-size: 1em; color: #333; margin: 10px 0;">Рейтинг: ' . htmlspecialchars($row['rate']) . '</p>';
+        echo '<br>';
+        echo '<div style="display: flex; flex-direction: row; gap: 5px; text-align: center; align-item: center; justify-content: center;">';
+        echo '<h1 style="font-size: 1.6em; color: #333; margin: 10px 0;"> руб.</h1>';
+        echo '</div>';
+        echo '<br>';
+        echo '<input type="submit" value="Купить" style="background-color: rgba(61, 218, 113, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(61, 218, 113, 0.88);">';
+        echo '</form>';
+        echo '</div>';
 
-2. **Оформление подписки:**
-   - Пользователь выбирает тарифный план.
-   - Система создает запись о подписке и связывает ее с пользователем.
-   - Пользователь оплачивает подписку через платежную систему.
-   - После успешной оплаты статус подписки становится активным.
+        $count++;
+        if ($count % 4 == 0) {
+            echo '</div><div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
+        }
+    }
+    echo '</div>';
+} else {
+    // Если записей нет
+    echo '<p style="text-align: center; font-size: 1.2em; color: #555; margin: 20px;">Объявления не найдены</p>';
+}
 
-3. **Работа с плейлистами:**
-   - Пользователь может создавать плейлисты и добавлять в них треки.
-   - Треки могут быть добавлены из библиотеки сервиса.
-
-4. **Просмотр и прослушивание треков:**
-   - Пользователь может искать треки, просматривать их и добавлять в плейлисты.
-   - Для прослушивания треков требуется активная подписка.
-
----
-
-### Заключение:
-Данная информационно-логическая модель описывает основные сущности и их взаимосвязи в системе "Duck Player". Она может быть реализована на Laravel с использованием миграций для создания таблиц в базе данных и моделей Eloquent для работы с данными.
+// Закрытие соединения
+$conn->close();
+?> 
+</body>
+</html>
