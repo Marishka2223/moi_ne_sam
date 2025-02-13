@@ -1,71 +1,56 @@
-
 <?php
 session_start();
 
-// Проверяем, авторизован ли пользователь
-if (!isset($_SESSION['modulez'])) {
-    header("Location: vxod.php");
-    exit();
+// Подключение к базе данных
+$conn = new mysqli("localhost", "root", "root", "modulez");
+
+if ($conn->connect_error) {
+    die("Ошибка: " . $conn->connect_error);
 }
 
-$id_user = $_SESSION['user_id'] ?? null; // Предполагаем, что id пользователя хранится в сессии
+// Получение id объявления с прошлой страницы
+$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ваш аккаунт</title>
-</head>
-<body>
-<header style="display: flex; background-color: rgba(252, 149, 53, 0.82); color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px;">
-    <a href="./ads.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
+// Запрос к базе данных для получения данных объявления
+$query = "SELECT id, name, content, image, email_users, rate FROM goods WHERE id = $id";
+$result = $conn->query($query);
 
-    <?php
-    if ($_SESSION['modulez'] === 'admin') {
-        echo '<a href="./admin.php" style="color: white; font-size: 1.5em">Админ панель</a>';
-    } else {
-        echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
-    }
-    echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
     ?>
-</header>
-<h1 style="text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">Ваш аккаунт</h1>
-<div style="text-align: center; padding: 20px;">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?php echo htmlspecialchars($row['name']); ?></title>
+    </head>
+    <body>
+      <header style="display: flex; background-color: rgba(252, 149, 53, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
+        <a href="./ads.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
 
-    <?php
-    $conn = new mysqli("localhost", "root", "root", "modulez");
-    if ($conn->connect_error) {
-        die("Ошибка: " . $conn->connect_error);
-    }
-
-    $sql = "SELECT * FROM goods WHERE id_users = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id_user); // Используем id пользователя из сессии
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        echo "<table style='border-spacing: 20px 0px;'><tr><th>Название</th><th>Описание</th><th>Подробности</th><th>Статус</th><th>Контактные данные</th></tr>";
-        while ($row = $result->fetch_assoc()) {
-            echo "<tr>";
-            echo "<td>" . htmlspecialchars($row["name"]) . "</td>";
-            echo "<td>" . htmlspecialchars($row["content"]) . "</td>";
-            echo "<td>" . htmlspecialchars($row["rate"]) . "</td>";
-            echo "<td>" . htmlspecialchars($row["status"]) . "</td>";
-            echo "<td>" . htmlspecialchars($row["email_users"]) . "</td>";
-            echo "</tr>";
+        <?php
+        if (isset($_SESSION['modulez']) && $_SESSION['modulez'] === 'admin') {
+            echo '<a href="./admin.php" style="color: white; font-size: 1.5em">Админ панель</a>';
+            echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
+        } elseif (isset($_SESSION['modulez']) && $_SESSION['modulez'] != 'admin') {
+            echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
+            echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
+        } else {
+            echo '<a href="./vxod.php" style="color: white; font-size: 1.5em">Войти</a>';
         }
-        echo "</table>";
-    } else {
-        echo "У вас пока нет заказов.";
-    }
+        ?>
+      </header>
+      <div style="text-align: center; padding: 20px;">
+       
+      </div>
+    </body>
+    </html>
+    <?php
+} else {
+    echo '<p style="text-align: center; font-size: 1.2em; color: #555; margin: 20px;">Объявление не найдено</p>';
+}
 
-    $stmt->close();
-    $conn->close();
-    ?>
-
-</div>
-</body>
-</html>
+// Закрытие соединения
+$conn->close();
+?>
