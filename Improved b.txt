@@ -1,32 +1,19 @@
 <?php
 session_start();
 
-// Подключение к базе данных
-$conn = new mysqli("localhost", "root", "root", "modulez");
 
-if ($conn->connect_error) {
-    die("Ошибка: " . $conn->connect_error);
-}
-
-// Получение id объявления с прошлой страницы
-$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-
-// Запрос к базе данных для получения данных объявления
-$query = "SELECT id, name, content, image, email_users, rate FROM goods WHERE id = $id";
-$result = $conn->query($query);
-
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo htmlspecialchars($row['name']); ?></title>
-    </head>
-    <body>
-      <header style="display: flex; background-color: rgba(252, 149, 53, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
+// Получаем id пользователя из сессии
+$id_login = $_SESSION['modulez'];
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аккаунт</title>
+</head>
+<body>
+<header style="display: flex; background-color: rgba(252, 149, 53, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
         <a href="./ads.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
 
         <?php
@@ -41,16 +28,45 @@ if ($result->num_rows > 0) {
         }
         ?>
       </header>
-      <div style="text-align: center; padding: 20px;">
-       
-      </div>
-    </body>
-    </html>
-    <?php
-} else {
-    echo '<p style="text-align: center; font-size: 1.2em; color: #555; margin: 20px;">Объявление не найдено</p>';
+
+<br>
+
+<div  style="display: flex; align-items: center;  justify-content: center; flex-direction: column; text-decoration: none;">
+    <h1>Ваши заказы</h1>
+<br><br>
+<?php
+$conn = new mysqli("localhost", "root", "root", "modulez");
+if($conn->connect_error) {
+    die("Ошибка:" . $conn->connect_error);
 }
 
-// Закрытие соединения
+// Используем подготовленные выражения для защиты от SQL-инъекций
+$sql = "SELECT * FROM goods WHERE id_users = $_SESSION['modulez']"; // Изменили условие на id_users
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $id_user); // Используем id пользователя из сессии
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    echo "<table style='border-spacing: 20px 0px;'><tr><th>Название</th><th>Описание</th><th>Подробности</th><th>Статус</th><th>Почта</th></tr>";
+    while($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>". htmlspecialchars($row["name"]) . "</td>";
+        echo "<td>". htmlspecialchars($row["content"]) . "</td>";
+        echo "<td>". htmlspecialchars($row["rate"])."</td>";
+        echo "<td>". htmlspecialchars($row["status"])."</td>";
+        echo "<td>". htmlspecialchars($row["email_users"])."</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+} else {
+    echo "У вас пока нет заказов.";
+}
+
+$stmt->close();
 $conn->close();
 ?>
+</div>
+
+</body>
+</html>
