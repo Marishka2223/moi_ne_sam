@@ -1,138 +1,140 @@
-<?php
-session_start();
-?>
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Хост: localhost
+-- Время создания: Фев 14 2025 г., 13:08
+-- Версия сервера: 8.4.0
+-- Версия PHP: 8.1.28
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Доска объявлений</title>
-</head>
-<body>
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
-<header style="display: flex; background-color: rgba(252, 149, 53, 0.82);color: white; align-items: center; flex-wrap: row; gap: 25px; padding: 20px; max-height: 30px; ">
 
-    <a href="./ads.php" style="color: white; margin-left: 30%; font-size: 1.5em">Главная</a>
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
-    <?php
-    if (isset($_SESSION['modulez']) && $_SESSION['modulez'] === '1') {
-        echo '<a href="./admin.php" style="color: white; font-size: 1.5em">Админ панель</a>';
-        echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
-    }
+--
+-- База данных: `modulez`
+--
 
-    if (isset($_SESSION['modulez']) && $_SESSION['modulez'] != '1') {
-        echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
-        echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
-    }
-    if (!isset($_SESSION['modulez']) ) {
-        echo '<a href="./vxod.php" style="color: white; font-size: 1.5em">Войти</a>';
-    }
-    ?>
-</header>
+-- --------------------------------------------------------
 
-<h1 style=" text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">Объявления</h1>
+--
+-- Структура таблицы `category`
+--
 
-<!-- Добавляем input для поиска по имени -->
-<form method="get" action="">
-    <div style=" text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">
-    <input  style="height: 20px;  width: 1000px;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.23); border-radius: 20px; padding: 15px; " type="text" placeholder="введите название..." name="name" id="name" value="<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>">
-    <input type="submit" value="Найти" style="margin-top: 10px; height: 50px; width: 100px;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.23); border-radius: 20px; padding: 15px; ext-align: center;  ">
-    </div>
-</form>
+CREATE TABLE `category` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-<?php
-// Подключение к базе данных
-$conn = new mysqli("localhost", "root", "root", "modulez");
+--
+-- Дамп данных таблицы `category`
+--
 
-if ($conn->connect_error) {
-    die("Ошибка: " . $conn->connect_error);
-}
+INSERT INTO `category` (`id`, `name`) VALUES
+(1, 'гаджеты');
 
-// Запрос к базе данных с учетом фильтрации по имени
-$query = "SELECT id, name, content, image, email_users, rate FROM goods WHERE id > 0 AND status ='Активно'";
+-- --------------------------------------------------------
 
-if (isset($_GET['name']) && !empty($_GET['name'])) {
-    $name = $_GET['name'];
-    $query .= " AND name LIKE ?";
-}
+--
+-- Структура таблицы `goods`
+--
 
-if (isset($_GET['email_users']) && !empty($_GET['email_users'])) {
-    $email_users = $_GET['email_users'];
-    $query .= " AND email_users LIKE ?";
-}
+CREATE TABLE `goods` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `content` varchar(255) NOT NULL,
+  `image` longblob NOT NULL,
+  `rate` varchar(255) NOT NULL,
+  `status` varchar(255) NOT NULL,
+  `datez` date NOT NULL,
+  `id_users` int NOT NULL,
+  `email_users` varchar(255) NOT NULL,
+  `category_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-if (isset($_GET['content']) && !empty($_GET['content'])) {
-    $content = $_GET['content'];
-    $query .= " AND content LIKE ?";
-}
+--
+-- Структура таблицы `users`
+--
 
-$stmt = $conn->prepare($query);
+CREATE TABLE `users` (
+  `id` int NOT NULL,
+  `login` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `phone` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-if ($stmt) {
-    $params = [];
-    $types = '';
+--
+-- Дамп данных таблицы `users`
+--
 
-    if (isset($name)) {
-        $params[] = "%$name%";
-        $types .= 's';
-    }
+INSERT INTO `users` (`id`, `login`, `name`, `email`, `password`, `phone`) VALUES
+(1, 'admin', 'adminka admin', 'admin@mail.ru', '$2y$10$MRHq8k4ttDDcm1fmkU/bceb2oFIxxA6lsFtixDztR9eY/3a9KgTL2', '+7(812)-345-22-11'),
+(2, 'waver', 'Portuyanka Maria Vladimirovna', 'sfs@sd.ru', '$2y$10$0RRoYfIbp5BKsjMSGXaFJem7l6UjTF5CV4YnEMjtLtmgvOU2slwq6', '+7(232)-324-88-11');
 
-    if (isset($email_users)) {
-        $params[] = "%$email_users%";
-        $types .= 's';
-    }
+--
+-- Индексы сохранённых таблиц
+--
 
-    if (isset($content)) {
-        $params[] = "%$content%";
-        $types .= 's';
-    }
+--
+-- Индексы таблицы `category`
+--
+ALTER TABLE `category`
+  ADD UNIQUE KEY `name` (`name`);
 
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
+--
+-- Индексы таблицы `goods`
+--
+ALTER TABLE `goods`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_users` (`id_users`),
+  ADD KEY `email_users` (`email_users`),
+  ADD KEY `category_name` (`category_name`);
 
-    $stmt->execute();
-    $result = $stmt->get_result();
+--
+-- Индексы таблицы `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email_2` (`email`),
+  ADD KEY `email` (`email`);
 
-    // Проверка, есть ли записи
-    if ($result->num_rows > 0) {
-        // Вывод записей в ряд по 3
-        echo '<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
-        while ($row = $result->fetch_assoc()) {
-            
-            echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.47); padding: 15px; text-align: center; width: 40px; flex-direction: row;">';
-            echo '<form method="post" action="./ad.php">';
-            echo '<input type="hidden" name="action" value="add">';
-            echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
-            echo '<input type="hidden" name="name" value="' . htmlspecialchars($row['name']) . '">';
-            echo '<input type="hidden" name="described" value="' . htmlspecialchars($row['content']) . '">';
-            echo '<input type="hidden" name="image" value="' . base64_encode($row['image']) . '">';
-            echo '<input type="hidden" name="email" value="' . htmlspecialchars($row['email_users']) . '">';
-            echo '<input type="hidden" name="rate" value="' . htmlspecialchars($row['rate']) . '">';
-            
-            echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . base64_encode($row['image']) . '" width="200px" height="200px" style="border-radius: 8px;"/>';
-            echo '<h2 style="font-size: 1.5em; margin: 10px 0;">' . htmlspecialchars($row['name']) . '</h2>';
-            echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['content']) . '</p>';
-            echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['email_users']) . '</p>';
-            echo '<br>';
-            echo '<input type="submit" value="Отозваться" style="background-color: rgba(255, 165, 62, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(255, 165, 62, 0.88);">';
-            echo '</form>';
-            echo '</div>';
-        }
-        echo '</div>';
-    } else {
-        // Если записей нет
-        echo '<p style="text-align: center; font-size: 1.2em; color: #555; margin: 20px;">Объявления не найдены</p>';
-    }
+--
+-- AUTO_INCREMENT для сохранённых таблиц
+--
 
-    $stmt->close();
-} else {
-    echo "Ошибка подготовки запроса: " . $conn->error;
-}
+--
+-- AUTO_INCREMENT для таблицы `goods`
+--
+ALTER TABLE `goods`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
-// Закрытие соединения
-$conn->close();
-?> 
-</body>
-</html>
+--
+-- AUTO_INCREMENT для таблицы `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- Ограничения внешнего ключа сохраненных таблиц
+--
+
+--
+-- Ограничения внешнего ключа таблицы `goods`
+--
+ALTER TABLE `goods`
+  ADD CONSTRAINT `fk_category_name` FOREIGN KEY (`category_name`) REFERENCES `category` (`name`),
+  ADD CONSTRAINT `fk_email_users` FOREIGN KEY (`email_users`) REFERENCES `users` (`email`),
+  ADD CONSTRAINT `goods_ibfk_1` FOREIGN KEY (`id_users`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
