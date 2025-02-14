@@ -2,7 +2,7 @@
 session_start();
 
 // Подключение к базе данных
-$mysqli = new mysqli("localhost", "root", "", "modulez");
+$mysqli = new mysqli("localhost", "root", "root", "modulez");
 
 // Проверка соединения
 if ($mysqli->connect_error) {
@@ -10,11 +10,9 @@ if ($mysqli->connect_error) {
 }
 
 // Проверка, авторизован ли пользователь
-if (!isset($_SESSION['email'])) {
+if (!isset($_SESSION['modulez'])) {
     die("Пользователь не авторизован.");
 }
-
-$email = $_SESSION['email'];
 
 // Обработка формы
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -24,6 +22,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = $_POST['status'];
     $datez = $_POST['datez'];
     $category_name = $_POST['category_name'];
+
+    $email = $_SESSION['email'];
 
     // Обработка загрузки изображения
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
@@ -74,8 +74,11 @@ $categories = $mysqli->query("SELECT name FROM category");
         <label for="image">Изображение:</label>
         <input type="file" id="image" name="image" required><br><br>
 
-        <label for="rate">Рейтинг:</label>
+        <label for="rate">Подробности:</label>
         <input type="text" id="rate" name="rate" required><br><br>
+
+        <label for="status">Почта:</label>
+        <input type="text" id="email" name="email" required><br><br>
 
         <label for="status">Статус:</label>
         <input type="text" id="status" name="status" required><br><br>
