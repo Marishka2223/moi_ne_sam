@@ -1,1 +1,72 @@
+<?php  
+$conn = new mysqli("localhost", "root", "root", "modulez");
+if ($conn->connect_error) {
+    die("Ошибка: " . $conn->connect_error);
+}
 
+if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
+    $id = $conn->real_escape_string($_GET["id"]);
+    $sql = "SELECT * FROM tovar WHERE id = '$id'";
+    
+    if ($result = $conn->query($sql)) {
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $name = $row["name"];
+            $desc = $row["content"];
+            $price = $row["rate"];
+            $status = $row["status"];
+            $email = $row["email_users"];
+            $category = $row["category_name"];
+            
+            // Запрос для получения списка категорий
+            $categories_result = $conn->query("SELECT name FROM categories");
+            $categories = [];
+            while ($cat_row = $categories_result->fetch_assoc()) {
+                $categories[] = $cat_row['name'];
+            }
+            
+            echo "<h3>Изменение заказа</h3>
+            <form method='post'>
+                <input type='hidden' name='id' value='$id' />
+                <p>Название: <input type='text' name='stamp' value='$name' /></p>
+                <p>Описание: <input type='text' name='model' value='$desc' /></p>
+                <p>Подробности: <input type='number' name='price' value='$price' /></p>
+                <p>Почта: <input type='text' name='email' value='$email' /></p>
+                <p>Категория: 
+                    <select name='category'>";
+                    foreach ($categories as $cat) {
+                        $selected = ($cat == $category) ? 'selected' : '';
+                        echo "<option value='$cat' $selected>$cat</option>";
+                    }
+            echo "</select>
+                </p>
+                <input type='submit' value='Сохранить'>
+            </form>";
+        } else {
+            echo "<div>Не найдено</div>";
+        }
+        $result->free();
+    } else {
+        echo "Ошибка: " . $conn->error;
+    }
+} elseif (isset($_POST["id"]) && isset($_POST["stamp"]) && isset($_POST["model"]) && isset($_POST["email"]) && isset($_POST["price"]) && isset($_POST["category"])) {
+    $id = $conn->real_escape_string($_POST["id"]);
+    $name = $conn->real_escape_string($_POST["stamp"]);
+    $desc = $conn->real_escape_string($_POST["model"]);
+    $price = $conn->real_escape_string($_POST["price"]);
+    $email = $conn->real_escape_string($_POST["email"]);
+    $category = $conn->real_escape_string($_POST["category"]);
+    
+    $sql = "UPDATE tovar SET name='$name', content='$desc', rate='$price', email_users='$email', category_name='$category' WHERE id='$id'";
+    if ($conn->query($sql)) {
+        header("Location: admin.php");
+        exit();
+    } else {
+        echo "Ошибка: " . $conn->error;
+    }
+} else {
+    echo "Некорректные данные";
+}
+
+$conn->close();
+?>
