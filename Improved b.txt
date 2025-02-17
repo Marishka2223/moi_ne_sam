@@ -1,1 +1,49 @@
+<?php
+session_start();
 
+// Подключение к базе данных
+$db = new mysqli('localhost', 'username', 'password', 'database_name');
+
+if ($db->connect_error) {
+    die("Ошибка подключения: " . $db->connect_error);
+}
+
+// Получение данных из формы
+$login = $_POST['login'];
+$name = $_POST['name'];
+$email = $_POST['email'];
+$phone = $_POST['phone'];
+$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+// Проверка, существует ли почта в базе данных
+$query = "SELECT * FROM users WHERE email = ?";
+$stmt = $db->prepare($query);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    // Если почта уже существует, выводим сообщение об ошибке
+    $_SESSION['error'] = "Почта уже используется.";
+    header("Location: register.php");
+    exit();
+} else {
+    // Если почта не существует, добавляем нового пользователя
+    $query = "INSERT INTO users (login, name, email, phone, password) VALUES (?, ?, ?, ?, ?)";
+    $stmt = $db->prepare($query);
+    $stmt->bind_param("sssss", $login, $name, $email, $phone, $password);
+
+    if ($stmt->execute()) {
+        $_SESSION['success'] = "Регистрация прошла успешно!";
+        header("Location: vxod.php");
+        exit();
+    } else {
+        $_SESSION['error'] = "Ошибка при регистрации.";
+        header("Location: register.php");
+        exit();
+    }
+}
+
+$stmt->close();
+$db->close();
+?>
