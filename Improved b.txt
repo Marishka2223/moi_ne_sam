@@ -31,6 +31,7 @@ session_start();
     ?>
 </header>
 
+
 <?php  
 $conn = new mysqli("localhost", "root", "root", "modulez");
 if ($conn->connect_error) {
@@ -59,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
             }
             
             echo "<h3>Изменение заказа</h3>
-            <form method='post' enctype='multipart/form-data'>
+            <form method='post'>
                 <input type='hidden' name='id' value='$id' />
                 <p>Название: <input type='text' name='stamp' value='$name' /></p>
                 <p>Описание: <input type='text' name='model' value='$desc' /></p>
@@ -75,10 +76,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
                     }
             echo "</select>
                 </p>
-                <p>Статус: <select name='status' value='$status'>
-                <option>Активно</option>
-                <option>Неактивно</option>
-                </p>
                 <input type='submit' value='Сохранить'>
             </form>";
         } else {
@@ -88,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
     } else {
         echo "Ошибка: " . $conn->error;
     }
-} elseif (isset($_POST["id"]) && isset($_POST["stamp"]) && isset($_POST["model"]) && isset($_POST["email"]) && isset($_POST["price"]) && isset($_POST["category"]) && isset($_POST["status"])) {
+} elseif (isset($_POST["id"]) && isset($_POST["stamp"]) && isset($_POST["model"]) && isset($_POST["email"]) && isset($_POST["price"]) && isset($_POST["category"]) && isset($_POST["status"]) && isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
     $id = $conn->real_escape_string($_POST["id"]);
     $name = $conn->real_escape_string($_POST["stamp"]);
     $desc = $conn->real_escape_string($_POST["model"]);
@@ -99,7 +96,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
 
     // Обработка загрузки изображения
     $image_data = null;
-    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
         $image = $_FILES['image'];
         $image_size = $image['size'];
 
@@ -115,15 +111,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
 
         // Чтение содержимого изображения
         $image_data = $conn->real_escape_string(file_get_contents($image['tmp_name']));
-    }
 
-    // Обновление данных в базе данных
-    $sql = "UPDATE goods SET name='$name', content='$desc', rate='$price', email_users='$email', category_name='$category', status='$status'";
+    
+    $sql = "UPDATE goods SET name='$name', content='$desc', rate='$price', email_users='$email', category_name='$category', status='$status' WHERE id='$id'";
     if ($image_data !== null) {
         $sql .= ", image='$image_data'";
     }
     $sql .= " WHERE id='$id'";
 
+    
     if ($conn->query($sql)) {
         header("Location: admin.php");
         exit();
