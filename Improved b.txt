@@ -1,12 +1,13 @@
 <?php
 session_start();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель</title>
+    <title>Доска объявлений</title>
 </head>
 <body>
 
@@ -23,7 +24,6 @@ session_start();
     if (isset($_SESSION['modulez']) && $_SESSION['modulez'] != '1') {
         echo '<a href="./acc.php" style="color: white; font-size: 1.5em">Мой аккаунт</a>';
         echo '<a href="./logo.php" style="color: white; font-size: 1.5em">Выйти</a>';
-
     }
     if (!isset($_SESSION['modulez']) ) {
         echo '<a href="./vxod.php" style="color: white; font-size: 1.5em">Войти</a>';
@@ -31,106 +31,72 @@ session_start();
     ?>
 </header>
 
+<h1 style=" text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">Объявления</h1>
 
-<?php  
+<!-- Добавляем input для поиска по имени -->
+<form method="get" action="">
+    <div style=" text-align: center; font-size: 3.1em; color: rgba(85, 85, 85, 0.82)">
+    <input  style="height: 20px;  width: 1000px;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.23); border-radius: 20px; padding: 15px; " type="text" placeholder="введите название..." name="name" id="name" value="<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>">
+    <input type="submit" value="Найти" style="margin-top: 10px; height: 50px; width: 100px;  box-shadow: 0 0 10px rgba(0, 0, 0, 0.23); border-radius: 20px; padding: 15px; ext-align: center;  ">
+    </div>
+</form>
+
+<?php
+// Подключение к базе данных
 $conn = new mysqli("localhost", "root", "root", "modulez");
+
 if ($conn->connect_error) {
     die("Ошибка: " . $conn->connect_error);
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
-    $id = $conn->real_escape_string($_GET["id"]);
-    $sql = "SELECT * FROM goods WHERE id = '$id'";
-    
-    if ($result = $conn->query($sql)) {
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $name = $row["name"];
-            $desc = $row["content"];
-            $price = $row["rate"];
-            $status = $row["status"];
-            $email = $row["email_users"];
-            $category = $row["category_name"];
-            
-            // Запрос для получения списка категорий
-            $categories_result = $conn->query("SELECT name FROM category");
-            $categories = [];
-            while ($cat_row = $categories_result->fetch_assoc()) {
-                $categories[] = $cat_row['name'];
-            }
-            
-            echo "<h3>Изменение заказа</h3>
-            <form method='post'>
-                <input type='hidden' name='id' value='$id' />
-                <p>Название: <input type='text' name='stamp' value='$name' /></p>
-                <p>Описание: <input type='text' name='model' value='$desc' /></p>
-                <p>Подробности: <input type='text' name='price' value='$price' /></p>
-                <label for='image'>Изображение:</label>
-                <input type='file' id='image' name='image'><br><br>
-                <p>Почта: <input type='text' name='email' value='$email' /></p>
-                <p>Категория: 
-                    <select name='category'>";
-                    foreach ($categories as $cat) {
-                        $selected = ($cat == $category) ? 'selected' : '';
-                        echo "<option value='$cat' $selected>$cat</option>";
-                    }
-            echo "</select>
-                </p>
-                <input type='submit' value='Сохранить'>
-            </form>";
-        } else {
-            echo "<div>Не найдено</div>";
-        }
-        $result->free();
-    } else {
-        echo "Ошибка: " . $conn->error;
-    }
-} elseif (isset($_POST["id"]) && isset($_POST["stamp"]) && isset($_POST["model"]) && isset($_POST["email"]) && isset($_POST["price"]) && isset($_POST["category"]) && isset($_POST["status"]) && isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-    $id = $conn->real_escape_string($_POST["id"]);
-    $name = $conn->real_escape_string($_POST["stamp"]);
-    $desc = $conn->real_escape_string($_POST["model"]);
-    $price = $conn->real_escape_string($_POST["price"]);
-    $email = $conn->real_escape_string($_POST["email"]);
-    $category = $conn->real_escape_string($_POST["category"]);
-    $status = $conn->real_escape_string($_POST["status"]);
+// Запрос к базе данных с учетом фильтрации по имени
+$query = "SELECT id, name, content, image, email_users, rate FROM goods WHERE id > 0 AND status ='Активно'";
 
-    // Обработка загрузки изображения
-    $image_data = null;
-        $image = $_FILES['image'];
-        $image_size = $image['size'];
-
-        if ($image_size > 2 * 1024 * 1024) {
-            die("Ошибка: Размер изображения не должен превышать 2 МБ.");
-        }
-
-        // Проверка, что файл является изображением
-        $image_info = getimagesize($image['tmp_name']);
-        if ($image_info === false) {
-            die("Ошибка: Загруженный файл не является изображением.");
-        }
-
-        // Чтение содержимого изображения
-        $image_data = $conn->real_escape_string(file_get_contents($image['tmp_name']));
-
-    
-    $sql = "UPDATE goods SET name='$name', content='$desc', rate='$price', email_users='$email', category_name='$category', status='$status' WHERE id='$id'";
-    if ($image_data !== null) {
-        $sql .= ", image='$image_data'";
-    }
-    $sql .= " WHERE id='$id'";
-
-    
-    if ($conn->query($sql)) {
-        header("Location: admin.php");
-        exit();
-    } else {
-        echo "Ошибка: " . $conn->error;
-    }
-} else {
-    echo "Некорректные данные";
+if (isset($_GET['name']) && !empty($_GET['name'])) {
+    $name = $_GET['name'];
+    $query .= " AND name LIKE '%$name%'"; // Используем LIKE для поиска по части имени
 }
 
+$result = $conn->query($query);
+
+// Проверка, есть ли записи
+if ($result->num_rows > 0) {
+    // Вывод записей в ряд по 3
+    echo '<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
+    $count = 0;
+    while ($row = $result->fetch_assoc()) {
+        
+        echo '<div style="flex: 1 1 50px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.47); padding: 15px; text-align: center; width: 40px; flex-direction: row;">';
+        echo '<form method="post" action="./ad.php">';
+        echo '<input type="hidden" name="action" value="add">';
+        echo '<input type="hidden" name="id" value="' . $row['id'] . '">';
+        echo '<input type="hidden" name="name" value="' . htmlspecialchars($row['name']) . '">';
+        echo '<input type="hidden" name="described" value="' . htmlspecialchars($row['content']) . '">';
+        echo '<input type="hidden" name="image" value="' . base64_encode($row['image']) . '">';
+        echo '<input type="hidden" name="email" value="' . htmlspecialchars($row['email_users']) . '">';
+        echo '<input type="hidden" name="rate" value="' . htmlspecialchars($row['rate']) . '">';
+        
+        echo '<img src="data:image/png/jpg/jpeg/gif;base64,' . base64_encode($row['image']) . '" width="200px" height="200px" style="border-radius: 8px;"/>';
+        echo '<h2 style="font-size: 1.5em; margin: 10px 0;">' . htmlspecialchars($row['name']) . '</h2>';
+        echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['content']) . '</p>';
+        echo '<p style="font-size: 1em; color: #555; margin: 10px 0;">' . htmlspecialchars($row['email_users']) . '</p>';
+        echo '<br>';
+        echo '<input type="submit" value="Отозваться" style="background-color: rgba(255, 165, 62, 0.88); color: white; font-size: 1.6em; border: 1px solid rgba(255, 165, 62, 0.88);">';
+        echo '</form>';
+        echo '</div>';
+        $count++;
+        if ($count % 3 == 0) {
+            echo '</div><div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">';
+        }
+    }
+    echo '</div>';
+} else {
+    // Если записей нет
+    echo '<p style="text-align: center; font-size: 1.2em; color: #555; margin: 20px;">Объявления не найдены</p>';
+}
+
+// Закрытие соединения
 $conn->close();
-?>
+?> 
 </body>
 </html>
